@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dev:api": "node --watch api/server.js"
+    "security-check": "node check-security.js"
   },
   "dependencies": {
     "lucide-react": "^0.555.0",

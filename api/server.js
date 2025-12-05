@@ -15,14 +15,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
-// Mount routes with /api prefix since Vercel rewrites preserve the full path
-app.use('/api/apps', appsRouter);
-app.use('/api/feedback', feedbackRouter);
+// API Routes với prefix /api/v1
+app.use('/api/v1/apps', appsRouter);
+app.use('/api/v1/feedback', feedbackRouter);
 
 // 404 handler
 app.use((req, res) => {
@@ -38,13 +37,13 @@ app.use((err, req, res, next) => {
 // Export app for Vercel serverless
 export default app;
 
-// Start server only if not in Vercel environment
-if (process.env.VERCEL !== '1') {
+// Start server only if not in Vercel environment and not running in Vite dev mode
+if (process.env.VERCEL !== '1' && !process.env.VITE) {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`📱 Apps API: http://localhost:${PORT}/api/apps`);
-    console.log(`💬 Feedback API: http://localhost:${PORT}/api/feedback`);
+    console.log(`📊 Health check: http://localhost:${PORT}/api/v1/health`);
+    console.log(`📱 Apps API: http://localhost:${PORT}/api/v1/apps`);
+    console.log(`💬 Feedback API: http://localhost:${PORT}/api/v1/feedback`);
   });
 }
 
