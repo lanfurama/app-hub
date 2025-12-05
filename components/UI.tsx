@@ -25,7 +25,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', icon: Icon, isLoading, className = '', ...props }) => {
-  const baseStyle = "inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseStyle = "inline-flex items-center justify-center px-4 py-2 border text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants = {
     primary: "border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 shadow-sm",
@@ -53,39 +53,47 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', i
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
 }
-export const Input: React.FC<InputProps> = ({ label, className = '', disabled, ...props }) => (
-  <div className="mb-4">
-    {label && (
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-    )}
-    <input
-      className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
-      disabled={disabled}
-      {...props}
-    />
-  </div>
+export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ label, className = '', disabled, ...props }, ref) => (
+    <div className="mb-4">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      <input
+        ref={ref}
+        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
+        disabled={disabled}
+        {...props}
+      />
+    </div>
+  )
 );
+Input.displayName = 'Input';
 
 // --- Textarea ---
 interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
 }
-export const TextArea: React.FC<TextAreaProps> = ({ label, className = '', disabled, ...props }) => (
-  <div className="mb-4">
-    {label && (
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-    )}
-    <textarea
-      className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
-      disabled={disabled}
-      {...props}
-    />
-  </div>
+export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
+  ({ label, className = '', disabled, ...props }, ref) => (
+    <div className="mb-4">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label}
+        </label>
+      )}
+      <textarea
+        ref={ref}
+        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
+        disabled={disabled}
+        {...props}
+      />
+    </div>
+  )
 );
+TextArea.displayName = 'TextArea';
 
 // --- Card ---
 export const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
@@ -93,3 +101,104 @@ export const Card: React.FC<{ children: React.ReactNode, className?: string }> =
     {children}
   </div>
 );
+
+// --- Modal ---
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+  initialFocusRef?: React.RefObject<HTMLElement>;
+}
+
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, className = '', initialFocusRef }) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      // Prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      // Trigger animation
+      setTimeout(() => setIsVisible(true), 10);
+      // Auto focus on first input
+      if (initialFocusRef?.current) {
+        setTimeout(() => initialFocusRef.current?.focus(), 100);
+      }
+    } else {
+      document.body.style.overflow = '';
+      setIsVisible(false);
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, initialFocusRef]);
+
+  // Handle ESC key
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto" 
+      aria-labelledby="modal-title" 
+      role="dialog" 
+      aria-modal="true"
+    >
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-gray-500 ${
+          isVisible ? 'bg-opacity-75' : 'bg-opacity-0'
+        }`}
+        onClick={onClose}
+      ></div>
+
+      {/* Modal Container */}
+      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+        <div 
+          className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-3xl ${
+            isVisible 
+              ? 'opacity-100' 
+              : 'opacity-0'
+          } ${className}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          {title && (
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+              <h3 id="modal-title" className="text-lg font-medium text-gray-900">{title}</h3>
+              <button
+                onClick={onClose}
+                className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-md p-1"
+                aria-label="Close modal"
+              >
+                <span className="sr-only">Close</span>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          {/* Content */}
+          <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

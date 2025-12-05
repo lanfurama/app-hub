@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAppStore } from '../hooks/useAppStore';
 import { Button, Card, Badge, Input, TextArea } from '../components/UI';
-import { ArrowLeft, Github, ExternalLink, ThumbsUp, MessageSquare, Bug, Lightbulb, Sparkles, AlertTriangle, Hammer, Terminal } from 'lucide-react';
-import { FeedbackType, Feedback, AIAnalysisResult } from '../types';
-import { generateAppInsights } from '../services/geminiService';
+import { EditAppModal } from '../components/EditAppModal';
+import { useToast } from '../components/Toast';
+import { ArrowLeft, Github, ExternalLink, ThumbsUp, MessageSquare, Bug, Lightbulb, Hammer, Edit } from 'lucide-react';
+import { FeedbackType, Feedback } from '../types';
 
 export const AppDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { getApp, getAppFeedbacks, addFeedback, voteFeedback } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'feedback' | 'ai'>('feedback');
+  const toast = useToast();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // App Data
   const app = getApp(id || '');
@@ -22,11 +24,6 @@ export const AppDetails: React.FC = () => {
   const [newFeedbackAuthor, setNewFeedbackAuthor] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // AI State
-  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [aiError, setAiError] = useState<string | null>(null);
-
   if (!app) {
     return (
         <div className="max-w-4xl mx-auto p-8 text-center">
@@ -38,7 +35,10 @@ export const AppDetails: React.FC = () => {
 
   const handleSubmitFeedback = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFeedbackTitle || !newFeedbackDesc) return;
+    if (!newFeedbackTitle || !newFeedbackDesc) {
+      toast.warning('Please fill in all required fields');
+      return;
+    }
     
     setIsSubmitting(true);
     try {
@@ -53,26 +53,15 @@ export const AppDetails: React.FC = () => {
         setNewFeedbackDesc('');
         setNewFeedbackAuthor('');
         setNewFeedbackType(FeedbackType.OTHER);
+        toast.success('Feedback submitted successfully!');
     } catch (error) {
         console.error('Error creating feedback:', error);
-        alert('Failed to create feedback. Please try again.');
+        toast.error('Failed to create feedback. Please try again.');
     } finally {
         setIsSubmitting(false);
     }
   };
 
-  const handleRunAI = async () => {
-      setIsAnalyzing(true);
-      setAiError(null);
-      try {
-          const result = await generateAppInsights(app, feedbacks);
-          setAiAnalysis(result);
-      } catch (err: any) {
-          setAiError("Failed to generate AI insights. Check your API Key configuration or try again later.");
-      } finally {
-          setIsAnalyzing(false);
-      }
-  };
 
   const getFeedbackIcon = (type: FeedbackType) => {
       switch(type) {
@@ -102,6 +91,9 @@ export const AppDetails: React.FC = () => {
                 <p className="mt-2 text-gray-600 text-lg">{app.description}</p>
             </div>
             <div className="mt-4 md:mt-0 md:ml-6 flex space-x-3">
+                <Button variant="outline" icon={Edit} onClick={() => setIsEditModalOpen(true)}>
+                    Edit
+                </Button>
                 {app.githubUrl && (
                     <a href={app.githubUrl} target="_blank" rel="noopener noreferrer">
                         <Button variant="outline" icon={Github}>GitHub</Button>
@@ -116,30 +108,17 @@ export const AppDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('feedback')}
-            className={`${activeTab === 'feedback' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Feedback & Bugs
-            <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">{feedbacks.length}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('ai')}
-            className={`${activeTab === 'ai' ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            AI Insights
-          </button>
-        </nav>
+      {/* Feedback Section */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
+          <MessageSquare className="w-5 h-5 mr-2" />
+          Feedback & Bugs
+          <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">{feedbacks.length}</span>
+        </h2>
       </div>
 
-      {/* Feedback Tab Content */}
-      {activeTab === 'feedback' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Feedback Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Feedback List */}
             <div className="lg:col-span-2 space-y-4">
                 {feedbacks.length === 0 ? (
@@ -148,7 +127,7 @@ export const AppDetails: React.FC = () => {
                     </div>
                 ) : (
                     feedbacks.map(item => (
-                        <Card key={item.id} className="p-4 hover:bg-gray-50 transition">
+                        <Card key={item.id} className="p-4 hover:bg-gray-50">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start space-x-3">
                                     <div className={`mt-1 p-1.5 rounded-full bg-gray-100`}>
@@ -175,10 +154,10 @@ export const AppDetails: React.FC = () => {
                                                 await voteFeedback(item.id);
                                             } catch (error) {
                                                 console.error('Error voting feedback:', error);
-                                                alert('Failed to vote. Please try again.');
+                                                toast.error('Failed to vote. Please try again.');
                                             }
                                         }}
-                                        className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-indigo-50 text-gray-400 hover:text-indigo-600 transition"
+                                        className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-indigo-50 text-gray-400 hover:text-indigo-600"
                                     >
                                         <ThumbsUp className="w-5 h-5" />
                                         <span className="text-xs font-bold mt-1">{item.votes}</span>
@@ -242,80 +221,17 @@ export const AppDetails: React.FC = () => {
                 </Card>
             </div>
         </div>
-      )}
 
-      {/* AI Tab Content */}
-      {activeTab === 'ai' && (
-          <div className="space-y-6">
-              {!aiAnalysis && !isAnalyzing && (
-                  <div className="text-center py-12 bg-indigo-50 rounded-xl border border-indigo-100">
-                      <Sparkles className="mx-auto h-12 w-12 text-indigo-500 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900">Generate AI Product Insights</h3>
-                      <p className="mt-2 text-gray-600 max-w-md mx-auto mb-6">
-                          Let Gemini analyze your app description and user feedback to provide a summary, feature suggestions, and identify potential technical risks.
-                      </p>
-                      <Button onClick={handleRunAI} icon={Sparkles}>Analyze with Gemini</Button>
-                      {aiError && (
-                          <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md max-w-md mx-auto text-sm">
-                              {aiError}
-                          </div>
-                      )}
-                  </div>
-              )}
-
-              {isAnalyzing && (
-                  <div className="flex flex-col items-center justify-center py-20">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-                      <p className="text-gray-500">Gemini is analyzing your app context...</p>
-                  </div>
-              )}
-
-              {aiAnalysis && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                      <Card className="md:col-span-2 p-6 bg-gradient-to-r from-indigo-50 to-white">
-                          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-3">
-                              <Terminal className="w-5 h-5 mr-2 text-indigo-600" />
-                              Executive Summary
-                          </h3>
-                          <p className="text-gray-700 leading-relaxed">{aiAnalysis.summary}</p>
-                      </Card>
-
-                      <Card className="p-6 border-l-4 border-green-500">
-                          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-4">
-                              <Lightbulb className="w-5 h-5 mr-2 text-green-600" />
-                              Suggested Features
-                          </h3>
-                          <ul className="space-y-3">
-                              {aiAnalysis.suggestions.map((s, i) => (
-                                  <li key={i} className="flex items-start">
-                                      <span className="flex-shrink-0 h-6 w-6 rounded-full bg-green-100 text-green-800 flex items-center justify-center text-xs font-bold mr-3">{i + 1}</span>
-                                      <span className="text-gray-700 text-sm">{s}</span>
-                                  </li>
-                              ))}
-                          </ul>
-                      </Card>
-
-                      <Card className="p-6 border-l-4 border-orange-500">
-                          <h3 className="text-lg font-bold text-gray-900 flex items-center mb-4">
-                              <AlertTriangle className="w-5 h-5 mr-2 text-orange-600" />
-                              Technical Challenges
-                          </h3>
-                          <ul className="space-y-3">
-                              {aiAnalysis.technicalChallenges.map((s, i) => (
-                                  <li key={i} className="flex items-start">
-                                      <span className="flex-shrink-0 h-6 w-6 rounded-full bg-orange-100 text-orange-800 flex items-center justify-center text-xs font-bold mr-3">{i + 1}</span>
-                                      <span className="text-gray-700 text-sm">{s}</span>
-                                  </li>
-                              ))}
-                          </ul>
-                      </Card>
-                      
-                      <div className="md:col-span-2 flex justify-end">
-                         <Button variant="ghost" onClick={handleRunAI} size="sm">Regenerate Analysis</Button>
-                      </div>
-                  </div>
-              )}
-          </div>
+      {/* Edit App Modal */}
+      {id && (
+        <EditAppModal
+          appId={id}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => {
+            // Optionally refresh or show success message
+          }}
+        />
       )}
     </div>
   );

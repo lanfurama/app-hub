@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../hooks/useAppStore';
 import { Input, TextArea, Button, Card } from '../components/UI';
+import { useToast } from '../components/Toast';
 import { ArrowLeft, Save } from 'lucide-react';
 
 export const NewApp: React.FC = () => {
   const navigate = useNavigate();
   const { addApp } = useAppStore();
+  const toast = useToast();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -16,9 +18,56 @@ export const NewApp: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const isValidUrl = (url: string) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    if (!name.trim()) {
+      newErrors.name = 'Application name is required';
+    }
+
+    if (!description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    if (!techStackInput.trim()) {
+      newErrors.techStack = 'Tech stack is required';
+    }
+
+    if (githubUrl && !isValidUrl(githubUrl)) {
+      newErrors.githubUrl = 'Please enter a valid URL';
+    }
+
+    if (demoUrl && !isValidUrl(demoUrl)) {
+      newErrors.demoUrl = 'Please enter a valid URL';
+    }
+
+    if (imageUrl && !isValidUrl(imageUrl)) {
+      newErrors.imageUrl = 'Please enter a valid URL';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast.error('Please fix the errors in the form');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -34,10 +83,11 @@ export const NewApp: React.FC = () => {
         imageUrl: imageUrl || undefined,
       });
       
+      toast.success('Application created successfully!');
       navigate('/');
     } catch (error) {
       console.error('Error creating app:', error);
-      alert('Failed to create app. Please try again.');
+      toast.error('Failed to create app. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -62,48 +112,83 @@ export const NewApp: React.FC = () => {
 
       <Card className="p-8">
         <form onSubmit={handleSubmit} className="space-y-6">
-            <Input 
-                label="Application Name" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
-                required 
-                placeholder="e.g. SuperToDo"
-            />
+            <div>
+              <Input 
+                  label="Application Name" 
+                  value={name} 
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (errors.name) setErrors({ ...errors, name: '' });
+                  }} 
+                  required 
+                  placeholder="e.g. SuperToDo"
+                  className={errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+              />
+              {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
+            </div>
             
-            <TextArea 
-                label="Description" 
-                value={description} 
-                onChange={e => setDescription(e.target.value)} 
-                required 
-                rows={4}
-                placeholder="What does your app do? What problem does it solve?"
-            />
-
-            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
-                <Input 
-                    label="GitHub URL (Optional)" 
-                    value={githubUrl} 
-                    onChange={e => setGithubUrl(e.target.value)} 
-                    placeholder="https://github.com/username/repo"
-                    type="url"
-                />
-                
-                <Input 
-                    label="Demo URL (Optional)" 
-                    value={demoUrl} 
-                    onChange={e => setDemoUrl(e.target.value)} 
-                    placeholder="https://my-app.vercel.app"
-                    type="url"
-                />
+            <div>
+              <TextArea 
+                  label="Description" 
+                  value={description} 
+                  onChange={(e) => {
+                    setDescription(e.target.value);
+                    if (errors.description) setErrors({ ...errors, description: '' });
+                  }} 
+                  required 
+                  rows={4}
+                  placeholder="What does your app do? What problem does it solve?"
+                  className={errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+              />
+              {errors.description && <p className="text-sm text-red-600 mt-1">{errors.description}</p>}
             </div>
 
-            <Input 
-                label="Tech Stack (comma separated)" 
-                value={techStackInput} 
-                onChange={e => setTechStackInput(e.target.value)} 
-                placeholder="React, TypeScript, Tailwind, Node.js"
-                required
-            />
+            <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                <div>
+                  <Input 
+                      label="GitHub URL (Optional)" 
+                      value={githubUrl} 
+                      onChange={(e) => {
+                        setGithubUrl(e.target.value);
+                        if (errors.githubUrl) setErrors({ ...errors, githubUrl: '' });
+                      }} 
+                      placeholder="https://github.com/username/repo"
+                      type="url"
+                      className={errors.githubUrl ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                  />
+                  {errors.githubUrl && <p className="text-sm text-red-600 mt-1">{errors.githubUrl}</p>}
+                </div>
+                
+                <div>
+                  <Input 
+                      label="Demo URL (Optional)" 
+                      value={demoUrl} 
+                      onChange={(e) => {
+                        setDemoUrl(e.target.value);
+                        if (errors.demoUrl) setErrors({ ...errors, demoUrl: '' });
+                      }} 
+                      placeholder="https://my-app.vercel.app"
+                      type="url"
+                      className={errors.demoUrl ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+                  />
+                  {errors.demoUrl && <p className="text-sm text-red-600 mt-1">{errors.demoUrl}</p>}
+                </div>
+            </div>
+
+            <div>
+              <Input 
+                  label="Tech Stack (comma separated)" 
+                  value={techStackInput} 
+                  onChange={(e) => {
+                    setTechStackInput(e.target.value);
+                    if (errors.techStack) setErrors({ ...errors, techStack: '' });
+                  }} 
+                  placeholder="React, TypeScript, Tailwind, Node.js"
+                  required
+                  className={errors.techStack ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
+              />
+              {errors.techStack && <p className="text-sm text-red-600 mt-1">{errors.techStack}</p>}
+            </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -114,17 +199,23 @@ export const NewApp: React.FC = () => {
                 onChange={(e) => {
                   setImageUrl(e.target.value);
                   setImagePreview(e.target.value || null);
+                  if (errors.imageUrl) setErrors({ ...errors, imageUrl: '' });
                 }} 
                 placeholder="https://example.com/image.jpg"
                 type="url"
+                className={errors.imageUrl ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
               />
+              {errors.imageUrl && <p className="text-sm text-red-600 mt-1">{errors.imageUrl}</p>}
               {imagePreview && (
-                <div className="mt-2">
+                <div className="mt-2 relative">
                   <img 
                     src={imagePreview} 
                     alt="Preview" 
                     className="w-full h-48 object-cover rounded-md border border-gray-300"
-                    onError={() => setImagePreview(null)}
+                    onError={() => {
+                      setImagePreview(null);
+                      toast.error('Failed to load image. Please check the URL.');
+                    }}
                   />
                 </div>
               )}

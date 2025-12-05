@@ -27,11 +27,4 @@ export interface AppData {
   createdAt: number;
   thumbnailUrl?: string;
   imageUrl?: string; // URL của ảnh app
-  aiInsights?: string; // Cache for AI analysis
-}
-
-export interface AIAnalysisResult {
-  summary: string;
-  suggestions: string[];
-  technicalChallenges: string[];
 }

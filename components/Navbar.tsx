@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers, PlusCircle, BarChart2 } from 'lucide-react';
-import { Button } from './UI';
+import { Layers } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
@@ -29,11 +28,6 @@ export const Navbar: React.FC = () => {
                 Dashboard
               </Link>
             </div>
-          </div>
-          <div className="flex items-center">
-            <Link to="/new">
-              <Button variant="primary" icon={PlusCircle}>Add App</Button>
-            </Link>
           </div>
         </div>
       </div>
