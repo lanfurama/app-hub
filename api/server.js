@@ -20,6 +20,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+// Mount routes with /api prefix since Vercel rewrites preserve the full path
 app.use('/api/apps', appsRouter);
 app.use('/api/feedback', feedbackRouter);
 

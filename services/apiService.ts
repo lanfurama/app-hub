@@ -2,17 +2,30 @@ import { AppData, Feedback } from '../types';
 
 // Auto-detect API URL: use Vercel URL in production, or custom VITE_API_URL, or localhost
 const getApiUrl = () => {
+  // Check for explicit API URL
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  // On Vercel, API routes are on the same domain
-  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-    return '/api';
+  
+  // On Vercel/production, API routes are on the same domain
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // If not localhost, use relative path (same domain)
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      return '/api';
+    }
   }
+  
+  // Default to localhost for local development
   return 'http://localhost:3001/api';
 };
 
 const API_BASE_URL = getApiUrl();
+
+// Debug log (remove in production if needed)
+if (typeof window !== 'undefined' && import.meta.env.DEV) {
+  console.log('API Base URL:', API_BASE_URL);
+}
 
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
