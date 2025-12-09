@@ -106,10 +106,13 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
       });
       
       toast.success('Application updated successfully!');
-      onClose();
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Small delay for smooth transition
+      setTimeout(() => {
+        onClose();
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 300);
     } catch (error) {
       console.error('Error updating app:', error);
       toast.error('Failed to update app. Please try again.');

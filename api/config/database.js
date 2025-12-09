@@ -87,14 +87,8 @@ if (process.env.DATABASE_URL) {
   // For localhost, don't set ssl property at all
 }
 
-// Debug log
-if (process.env.NODE_ENV !== 'production') {
-  console.log('🔧 Database Config:', {
-    host: poolConfig.host || 'connection string',
-    ssl: poolConfig.ssl === false ? 'disabled' : 'enabled',
-    database: poolConfig.database || 'from connection string'
-  });
-}
+// ⚠️ SECURITY: Removed debug logging to prevent information leakage
+// Database config should not be logged, even in development
 
 const pool = new Pool(poolConfig);
 

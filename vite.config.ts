@@ -11,11 +11,10 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
       },
       plugins: [react(), apiPlugin()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      envPrefix: ['VITE_', 'GEMINI_'], // Allow both VITE_ and GEMINI_ prefixed env vars
+      // ⚠️ SECURITY: Do NOT expose API keys in client-side code
+      // API keys should only be used in server-side API routes
+      // If you need to use Gemini API, create a proxy endpoint in api/routes/
+      envPrefix: ['VITE_'], // Only allow VITE_ prefixed env vars for client-side
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

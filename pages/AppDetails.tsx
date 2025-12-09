@@ -4,12 +4,13 @@ import { useAppStore } from '../hooks/useAppStore';
 import { Button, Card, Badge, Input, TextArea } from '../components/UI';
 import { EditAppModal } from '../components/EditAppModal';
 import { useToast } from '../components/Toast';
+import { AppDetailsSkeleton } from '../components/Skeleton';
 import { ArrowLeft, Github, ExternalLink, ThumbsUp, MessageSquare, Bug, Lightbulb, Hammer, Edit } from 'lucide-react';
 import { FeedbackType, Feedback } from '../types';
 
 export const AppDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { getApp, getAppFeedbacks, addFeedback, voteFeedback } = useAppStore();
+  const { getApp, getAppFeedbacks, addFeedback, voteFeedback, loadingStates, isLoaded } = useAppStore();
   const toast = useToast();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
@@ -24,6 +25,12 @@ export const AppDetails: React.FC = () => {
   const [newFeedbackAuthor, setNewFeedbackAuthor] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Show skeleton while loading
+  if (!isLoaded || loadingStates.initialLoad) {
+    return <AppDetailsSkeleton />;
+  }
+
+  // Show not found only after data is loaded
   if (!app) {
     return (
         <div className="max-w-4xl mx-auto p-8 text-center">
@@ -49,10 +56,13 @@ export const AppDetails: React.FC = () => {
             description: newFeedbackDesc,
             author: newFeedbackAuthor || 'Anonymous'
         });
-        setNewFeedbackTitle('');
-        setNewFeedbackDesc('');
-        setNewFeedbackAuthor('');
-        setNewFeedbackType(FeedbackType.OTHER);
+        // Clear form with smooth transition
+        setTimeout(() => {
+          setNewFeedbackTitle('');
+          setNewFeedbackDesc('');
+          setNewFeedbackAuthor('');
+          setNewFeedbackType(FeedbackType.OTHER);
+        }, 100);
         toast.success('Feedback submitted successfully!');
     } catch (error) {
         console.error('Error creating feedback:', error);
@@ -126,8 +136,8 @@ export const AppDetails: React.FC = () => {
                         <p className="text-gray-500">No feedback yet. Be the first!</p>
                     </div>
                 ) : (
-                    feedbacks.map(item => (
-                        <Card key={item.id} className="p-4 hover:bg-gray-50">
+                    feedbacks.map((item, index) => (
+                        <Card key={item.id} className="p-4 hover:bg-gray-50 fade-in slide-in" style={{ animationDelay: `${index * 50}ms` }}>
                             <div className="flex items-start justify-between">
                                 <div className="flex items-start space-x-3">
                                     <div className={`mt-1 p-1.5 rounded-full bg-gray-100`}>
@@ -157,10 +167,24 @@ export const AppDetails: React.FC = () => {
                                                 toast.error('Failed to vote. Please try again.');
                                             }
                                         }}
-                                        className="flex flex-col items-center justify-center p-2 rounded-md hover:bg-indigo-50 text-gray-400 hover:text-indigo-600"
+                                        disabled={loadingStates[`voteFeedback-${item.id}`]}
+                                        className={`flex flex-col items-center justify-center p-2 rounded-md transition-all ${
+                                            loadingStates[`voteFeedback-${item.id}`]
+                                                ? 'bg-indigo-100 text-indigo-600 cursor-wait'
+                                                : 'hover:bg-indigo-50 text-gray-400 hover:text-indigo-600'
+                                        }`}
                                     >
-                                        <ThumbsUp className="w-5 h-5" />
-                                        <span className="text-xs font-bold mt-1">{item.votes}</span>
+                                        {loadingStates[`voteFeedback-${item.id}`] ? (
+                                            <svg className="animate-spin h-5 w-5 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                        ) : (
+                                            <ThumbsUp className="w-5 h-5" />
+                                        )}
+                                        <span className={`text-xs font-bold mt-1 number-transition ${
+                                            loadingStates[`voteFeedback-${item.id}`] ? 'text-indigo-600 scale-110' : ''
+                                        }`}>{item.votes}</span>
                                     </button>
                                 </div>
                             </div>

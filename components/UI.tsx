@@ -97,7 +97,7 @@ TextArea.displayName = 'TextArea';
 
 // --- Card ---
 export const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = '' }) => (
-  <div className={`bg-white overflow-hidden shadow rounded-lg border border-gray-100 ${className}`}>
+  <div className={`bg-white overflow-hidden shadow rounded-lg border border-gray-100 transition-shadow duration-200 ${className}`}>
     {children}
   </div>
 );
@@ -119,15 +119,20 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     if (isOpen) {
       // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
-      // Trigger animation
-      setTimeout(() => setIsVisible(true), 10);
+      // Trigger animation with slight delay for smooth entrance
+      requestAnimationFrame(() => {
+        setTimeout(() => setIsVisible(true), 10);
+      });
       // Auto focus on first input
       if (initialFocusRef?.current) {
-        setTimeout(() => initialFocusRef.current?.focus(), 100);
+        setTimeout(() => initialFocusRef.current?.focus(), 150);
       }
     } else {
-      document.body.style.overflow = '';
       setIsVisible(false);
+      // Delay restoring scroll to allow exit animation
+      setTimeout(() => {
+        document.body.style.overflow = '';
+      }, 300);
     }
 
     return () => {
@@ -160,7 +165,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     >
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-gray-500 ${
+        className={`fixed inset-0 bg-gray-500 transition-opacity duration-300 ${
           isVisible ? 'bg-opacity-75' : 'bg-opacity-0'
         }`}
         onClick={onClose}
@@ -169,10 +174,10 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
       {/* Modal Container */}
       <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <div 
-          className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-3xl ${
+          className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-3xl transition-all duration-300 ${
             isVisible 
-              ? 'opacity-100' 
-              : 'opacity-0'
+              ? 'opacity-100 scale-100 translate-y-0' 
+              : 'opacity-0 scale-95 translate-y-4'
           } ${className}`}
           onClick={(e) => e.stopPropagation()}
         >

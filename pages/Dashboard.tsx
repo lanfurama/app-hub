@@ -10,7 +10,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, L
 import { FeedbackType } from '../types';
 
 export const Dashboard: React.FC = () => {
-  const { apps, feedbacks, isLoaded, error } = useAppStore();
+  const { apps, feedbacks, isLoaded, error, loadingStates } = useAppStore();
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
 
@@ -67,21 +67,21 @@ export const Dashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="p-4 bg-white border-l-4 border-indigo-500">
+        <Card className="p-4 bg-white border-l-4 border-indigo-500 fade-in" style={{ animationDelay: '0ms' }}>
             <p className="text-sm font-medium text-gray-500">Total Applications</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.totalApps}</p>
+            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalApps}</p>
         </Card>
-        <Card className="p-4 bg-white border-l-4 border-red-500">
+        <Card className="p-4 bg-white border-l-4 border-red-500 fade-in" style={{ animationDelay: '50ms' }}>
             <p className="text-sm font-medium text-gray-500">Active Bugs Reported</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.totalBugs}</p>
+            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalBugs}</p>
         </Card>
-        <Card className="p-4 bg-white border-l-4 border-blue-500">
+        <Card className="p-4 bg-white border-l-4 border-blue-500 fade-in" style={{ animationDelay: '100ms' }}>
             <p className="text-sm font-medium text-gray-500">Feature Requests</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900">{stats.totalFeatures}</p>
+            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalFeatures}</p>
         </Card>
         
         {/* Simple Chart */}
-        <Card className="p-2 md:row-span-2 md:col-start-4 flex items-center justify-center min-h-[150px]">
+        <Card className="p-2 md:row-span-2 md:col-start-4 flex items-center justify-center min-h-[150px] fade-in" style={{ animationDelay: '150ms' }}>
             {chartData.length > 0 ? (
                 <div className="w-full h-32">
                      <ResponsiveContainer width="100%" height="100%">
@@ -131,8 +131,8 @@ export const Dashboard: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {apps.map((app) => (
-            <Card key={app.id} className="flex flex-col h-full hover:shadow-lg">
+            {apps.map((app, index) => (
+            <Card key={app.id} className="flex flex-col h-full card-hover fade-in" style={{ animationDelay: `${index * 50}ms` }}>
                 <div className="relative h-48 bg-gray-200 overflow-hidden">
                     {(app.imageUrl || app.thumbnailUrl) ? (
                         <>
@@ -140,16 +140,16 @@ export const Dashboard: React.FC = () => {
                             <img 
                                 src={app.imageUrl || app.thumbnailUrl} 
                                 alt={app.name} 
-                                className="w-full h-full object-cover relative"
+                                className="w-full h-full object-cover relative image-loading"
                                 onLoad={(e) => {
                                     const target = e.target as HTMLImageElement;
-                                    target.style.opacity = '1';
+                                    target.classList.remove('image-loading');
+                                    target.classList.add('image-loaded');
                                 }}
                                 onError={(e) => {
                                     const target = e.target as HTMLImageElement;
                                     target.src = `https://picsum.photos/400/200?random=${app.id}`;
                                 }}
-                                style={{ opacity: 0 }}
                             />
                         </>
                     ) : (
@@ -173,16 +173,24 @@ export const Dashboard: React.FC = () => {
                 <div className="flex-1 p-6 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 truncate flex-1">
-                            <Link to={`/app/${app.id}`} className="hover:text-indigo-600">
+                            <Link to={`/app/${app.id}`} className="hover:text-indigo-600 transition-colors">
                                 {app.name}
                             </Link>
                         </h3>
                         <button 
                             onClick={() => setEditingAppId(app.id)}
-                            className="ml-2 p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md"
+                            className="ml-2 p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
                             aria-label="Edit application"
+                            disabled={loadingStates[`updateApp-${app.id}`]}
                         >
-                            <Edit size={16} />
+                            {loadingStates[`updateApp-${app.id}`] ? (
+                                <svg className="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                            ) : (
+                                <Edit size={16} />
+                            )}
                         </button>
                     </div>
                     <p className="mt-2 text-sm text-gray-600 line-clamp-3 flex-1">{app.description}</p>
@@ -198,14 +206,15 @@ export const Dashboard: React.FC = () => {
                         <div className="flex gap-2">
                             <Button 
                                 variant="outline" 
-                                className="flex-1 justify-center" 
+                                className="flex-1 justify-center transition-all" 
                                 icon={Edit}
                                 onClick={() => setEditingAppId(app.id)}
+                                disabled={loadingStates[`updateApp-${app.id}`]}
                             >
-                                Edit
+                                {loadingStates[`updateApp-${app.id}`] ? 'Updating...' : 'Edit'}
                             </Button>
                             <Link to={`/app/${app.id}`} className="flex-1">
-                                <Button variant="outline" className="w-full justify-center">
+                                <Button variant="outline" className="w-full justify-center transition-all">
                                     View Details
                                 </Button>
                             </Link>
