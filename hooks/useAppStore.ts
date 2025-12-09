@@ -7,16 +7,20 @@ export const useAppStore = () => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
   // Load data from API
   useEffect(() => {
     const loadData = async () => {
       try {
         setError(null);
+        setLoadingStates(prev => ({ ...prev, initialLoad: true }));
         const [appsData, feedbacksData] = await Promise.all([
           appsApi.getAll(),
           feedbackApi.getAll()
         ]);
+        // Small delay for smooth transition
+        await new Promise(resolve => setTimeout(resolve, 100));
         setApps(appsData);
         setFeedbacks(feedbacksData);
         setIsLoaded(true);
@@ -24,6 +28,8 @@ export const useAppStore = () => {
         console.error('Error loading data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load data');
         setIsLoaded(true); // Still set loaded to true to show error state
+      } finally {
+        setLoadingStates(prev => ({ ...prev, initialLoad: false }));
       }
     };
 
@@ -31,8 +37,10 @@ export const useAppStore = () => {
   }, []);
 
   const addApp = async (app: Omit<AppData, 'id' | 'createdAt'>) => {
+    const loadingKey = 'addApp';
     try {
       setError(null);
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       const newApp = await appsApi.create({
         ...app,
         thumbnailUrl: app.thumbnailUrl || `https://picsum.photos/400/200?random=${Date.now()}`
@@ -43,12 +51,16 @@ export const useAppStore = () => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create app';
       setError(errorMessage);
       throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
   };
 
   const updateApp = async (id: string, app: Partial<AppData>) => {
+    const loadingKey = `updateApp-${id}`;
     try {
       setError(null);
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       const updatedApp = await appsApi.update(id, app);
       setApps(apps.map(a => a.id === id ? updatedApp : a));
       return updatedApp;
@@ -56,6 +68,8 @@ export const useAppStore = () => {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update app';
       setError(errorMessage);
       throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
   };
 
@@ -73,17 +87,37 @@ export const useAppStore = () => {
   };
 
   const voteFeedback = async (id: string) => {
+    const loadingKey = `voteFeedback-${id}`;
     try {
       setError(null);
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
+      
+      // Optimistic update
+      const currentFeedback = feedbacks.find(f => f.id === id);
+      if (currentFeedback) {
+        setFeedbacks(feedbacks.map(f => 
+          f.id === id ? { ...f, votes: f.votes + 1 } : f
+        ));
+      }
+      
       const updatedFeedback = await feedbackApi.vote(id, 1);
       setFeedbacks(feedbacks.map(f => 
         f.id === id ? updatedFeedback : f
       ));
       return updatedFeedback;
     } catch (err) {
+      // Revert optimistic update on error
+      const currentFeedback = feedbacks.find(f => f.id === id);
+      if (currentFeedback) {
+        setFeedbacks(feedbacks.map(f => 
+          f.id === id ? { ...f, votes: Math.max(0, f.votes - 1) } : f
+        ));
+      }
       const errorMessage = err instanceof Error ? err.message : 'Failed to vote feedback';
       setError(errorMessage);
       throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
   };
 
@@ -129,6 +163,7 @@ export const useAppStore = () => {
     feedbacks,
     isLoaded,
     error,
+    loadingStates,
     addApp,
     updateApp,
     addFeedback,

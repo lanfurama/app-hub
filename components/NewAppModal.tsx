@@ -104,10 +104,13 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
       });
       
       toast.success('Application created successfully!');
-      onClose();
-      if (onSuccess) {
-        onSuccess();
-      }
+      // Small delay for smooth transition
+      setTimeout(() => {
+        onClose();
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 300);
     } catch (error) {
       console.error('Error creating app:', error);
       toast.error('Failed to create app. Please try again.');
