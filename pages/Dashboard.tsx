@@ -57,7 +57,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-800 font-medium">Error loading data</p>
           <p className="text-red-600 text-sm mt-2">{error}</p>
-          <p className="text-gray-500 text-xs mt-4">Make sure the API server is running at http://localhost:3001</p>
+          <p className="text-gray-500 text-xs mt-4">Make sure the dev server is running. API is integrated at http://localhost:3000/api/v1</p>
         </div>
       </div>
     );

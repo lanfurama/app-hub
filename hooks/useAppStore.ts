@@ -9,9 +9,12 @@ export const useAppStore = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
-  // Load data from API
+  // Load data from API with retry logic
   useEffect(() => {
-    const loadData = async () => {
+    const loadData = async (retryCount = 0) => {
+      const MAX_RETRIES = 3;
+      const RETRY_DELAY = 1000; // Start with 1 second
+      
       try {
         setError(null);
         setLoadingStates(prev => ({ ...prev, initialLoad: true }));
@@ -26,6 +29,21 @@ export const useAppStore = () => {
         setIsLoaded(true);
       } catch (err) {
         console.error('Error loading data:', err);
+        
+        // Retry logic for network errors
+        if (retryCount < MAX_RETRIES && (
+          err instanceof TypeError || // Network error
+          (err instanceof Error && err.message.includes('Failed to fetch')) ||
+          (err instanceof Error && err.message.includes('Network error'))
+        )) {
+          const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+          console.log(`Retrying in ${delay}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+          setTimeout(() => {
+            loadData(retryCount + 1);
+          }, delay);
+          return;
+        }
+        
         setError(err instanceof Error ? err.message : 'Failed to load data');
         setIsLoaded(true); // Still set loaded to true to show error state
       } finally {
