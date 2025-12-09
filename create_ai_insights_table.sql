@@ -19,3 +19,6 @@ CREATE INDEX IF NOT EXISTS idx_ai_insights_created_at ON ai_insights(created_at 
 -- Hoặc có thể cho phép nhiều insights theo thời gian
 -- CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_insights_app_id_unique ON ai_insights(app_id);
 
+
+
+
