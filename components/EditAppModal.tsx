@@ -36,8 +36,11 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
       setDemoUrl(app.demoUrl || '');
       setTechStackInput(app.techStack.join(', '));
       const imgUrl = app.imageUrl || app.thumbnailUrl || '';
-      setImageUrl(imgUrl);
-      setImagePreview(imgUrl || null);
+      // Filter out random picsum.photos images
+      const isRandomImage = imgUrl && imgUrl.includes('picsum.photos');
+      const validImgUrl = isRandomImage ? '' : imgUrl;
+      setImageUrl(validImgUrl);
+      setImagePreview(validImgUrl || null);
     }
   }, [app, isOpen]);
 
@@ -214,8 +217,12 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
           <Input 
             value={imageUrl} 
             onChange={(e) => {
-              setImageUrl(e.target.value);
-              setImagePreview(e.target.value || null);
+              const newUrl = e.target.value;
+              // Filter out random picsum.photos images
+              const isRandomImage = newUrl && newUrl.includes('picsum.photos');
+              const validUrl = isRandomImage ? '' : newUrl;
+              setImageUrl(validUrl);
+              setImagePreview(validUrl || null);
               if (errors.imageUrl) setErrors({ ...errors, imageUrl: '' });
             }} 
             placeholder="https://example.com/image.jpg"
@@ -223,7 +230,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
             className={errors.imageUrl ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}
           />
           {errors.imageUrl && <p className="text-sm text-red-600 mt-1">{errors.imageUrl}</p>}
-          {imagePreview && (
+          {imagePreview && !imagePreview.includes('picsum.photos') && (
             <div className="mt-2 relative">
               <img 
                 src={imagePreview} 

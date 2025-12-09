@@ -133,3 +133,4 @@ Provide 2-3 concise insights about this application, focusing on its purpose, po
 });
 
 export default router;
+
