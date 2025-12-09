@@ -79,7 +79,7 @@ export const NewApp: React.FC = () => {
         githubUrl: githubUrl || undefined,
         demoUrl: demoUrl || undefined,
         techStack,
-        thumbnailUrl: imageUrl || `https://picsum.photos/400/200?random=${Date.now()}`,
+        thumbnailUrl: imageUrl || undefined,
         imageUrl: imageUrl || undefined,
       });
       

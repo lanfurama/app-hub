@@ -43,7 +43,8 @@ export const useAppStore = () => {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       const newApp = await appsApi.create({
         ...app,
-        thumbnailUrl: app.thumbnailUrl || `https://picsum.photos/400/200?random=${Date.now()}`
+        thumbnailUrl: app.thumbnailUrl || undefined,
+        imageUrl: app.imageUrl || undefined
       });
       setApps([newApp, ...apps]);
       return newApp;
