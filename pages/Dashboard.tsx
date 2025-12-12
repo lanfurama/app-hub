@@ -5,8 +5,7 @@ import { Card, Badge, Button } from '../components/UI';
 import { EditAppModal } from '../components/EditAppModal';
 import { NewAppModal } from '../components/NewAppModal';
 import { CardSkeleton, StatsSkeleton } from '../components/Skeleton';
-import { Github, ExternalLink, MessageSquare, Bug, Terminal, Edit, Plus } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { Github, MessageSquare, Bug, Terminal, Edit, Plus, Layers, AlertCircle, Lightbulb, ExternalLink } from 'lucide-react';
 import { FeedbackType } from '../types';
 
 export const Dashboard: React.FC = () => {
@@ -23,12 +22,6 @@ export const Dashboard: React.FC = () => {
     return { totalApps, totalBugs, totalFeatures, totalImprovements };
   }, [apps, feedbacks]);
 
-  const chartData = [
-    { name: 'Bugs', value: stats.totalBugs, color: '#EF4444' },
-    { name: 'Features', value: stats.totalFeatures, color: '#3B82F6' },
-    { name: 'Improvements', value: stats.totalImprovements, color: '#10B981' },
-  ].filter(d => d.value > 0);
-
   if (!isLoaded) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -42,8 +35,8 @@ export const Dashboard: React.FC = () => {
         
         {/* App Grid Skeleton */}
         <h2 className="text-xl font-bold text-gray-900 mb-6">Your Applications</h2>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <CardSkeleton key={i} />
           ))}
         </div>
@@ -66,47 +59,56 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <Card className="p-4 bg-white border-l-4 border-indigo-500 fade-in" style={{ animationDelay: '0ms' }}>
-            <p className="text-sm font-medium text-gray-500">Total Applications</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalApps}</p>
-        </Card>
-        <Card className="p-4 bg-white border-l-4 border-red-500 fade-in" style={{ animationDelay: '50ms' }}>
-            <p className="text-sm font-medium text-gray-500">Active Bugs Reported</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalBugs}</p>
-        </Card>
-        <Card className="p-4 bg-white border-l-4 border-blue-500 fade-in" style={{ animationDelay: '100ms' }}>
-            <p className="text-sm font-medium text-gray-500">Feature Requests</p>
-            <p className="mt-1 text-3xl font-semibold text-gray-900 number-transition">{stats.totalFeatures}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
+        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200" style={{ animationDelay: '0ms' }}>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-bl-full opacity-40"></div>
+          <div className="relative p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-500 mb-0.5">Total Applications</p>
+                  <p className="text-xl font-bold text-gray-900 number-transition">{stats.totalApps}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </Card>
         
-        {/* Simple Chart */}
-        <Card className="p-2 md:row-span-2 md:col-start-4 flex items-center justify-center min-h-[150px] fade-in" style={{ animationDelay: '150ms' }}>
-            {chartData.length > 0 ? (
-                <div className="w-full h-32">
-                     <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={chartData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={30}
-                                outerRadius={50}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {chartData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <RechartsTooltip />
-                        </PieChart>
-                     </ResponsiveContainer>
-                     <p className="text-center text-xs text-gray-400">Feedback Distribution</p>
+        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200" style={{ animationDelay: '50ms' }}>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-100 to-red-50 rounded-bl-full opacity-40"></div>
+          <div className="relative p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+                  <AlertCircle className="w-4 h-4 text-red-600" />
                 </div>
-            ) : (
-                <p className="text-xs text-gray-400">No feedback data yet</p>
-            )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-500 mb-0.5">Active Bugs</p>
+                  <p className="text-xl font-bold text-gray-900 number-transition">{stats.totalBugs}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200" style={{ animationDelay: '100ms' }}>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-50 rounded-bl-full opacity-40"></div>
+          <div className="relative p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1">
+                <div className="p-2 bg-amber-100 rounded-lg flex-shrink-0">
+                  <Lightbulb className="w-4 h-4 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-gray-500 mb-0.5">Feature Requests</p>
+                  <p className="text-xl font-bold text-gray-900 number-transition">{stats.totalFeatures}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
 
@@ -130,10 +132,19 @@ export const Dashboard: React.FC = () => {
             </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
             {apps.map((app, index) => (
-            <Card key={app.id} className="flex flex-col h-full card-hover fade-in" style={{ animationDelay: `${index * 50}ms` }}>
-                <div className="relative h-48 bg-gray-200 overflow-hidden">
+            <Card 
+                key={app.id} 
+                className="flex flex-col h-full card-hover fade-in cursor-pointer" 
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => {
+                    if (app.demoUrl) {
+                        window.open(app.demoUrl, '_blank', 'noopener,noreferrer');
+                    }
+                }}
+            >
+                <div className="relative h-40 bg-gray-200 overflow-hidden">
                     {(() => {
                         const imageUrl = app.imageUrl || app.thumbnailUrl;
                         const isRandomImage = imageUrl && imageUrl.includes('picsum.photos');
@@ -169,27 +180,35 @@ export const Dashboard: React.FC = () => {
                     })()}
                     <div className="absolute top-2 right-2 flex space-x-1">
                         {app.githubUrl && (
-                            <a href={app.githubUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white/90 rounded-full hover:bg-white text-gray-800">
+                            <a 
+                                href={app.githubUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="p-1.5 bg-white/90 rounded-full hover:bg-white text-gray-800"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 <Github size={16} />
-                            </a>
-                        )}
-                        {app.demoUrl && (
-                            <a href={app.demoUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 bg-white/90 rounded-full hover:bg-white text-indigo-600">
-                                <ExternalLink size={16} />
                             </a>
                         )}
                     </div>
                 </div>
-                <div className="flex-1 p-6 flex flex-col">
-                    <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate flex-1">
-                            <Link to={`/app/${app.id}`} className="hover:text-indigo-600 transition-colors">
+                <div className="flex-1 p-4 xl:p-5 flex flex-col">
+                    <div className="flex justify-between items-start mb-2 gap-2">
+                        <h3 className="text-base xl:text-lg font-semibold text-gray-900 truncate flex-1">
+                            <Link 
+                                to={`/app/${app.id}`} 
+                                className="hover:text-indigo-600 transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 {app.name}
                             </Link>
                         </h3>
                         <button 
-                            onClick={() => setEditingAppId(app.id)}
-                            className="ml-2 p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingAppId(app.id);
+                            }}
+                            className="flex-shrink-0 p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-colors"
                             aria-label="Edit application"
                             disabled={loadingStates[`updateApp-${app.id}`]}
                         >
@@ -199,35 +218,57 @@ export const Dashboard: React.FC = () => {
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
                             ) : (
-                                <Edit size={16} />
+                                <Edit size={14} />
                             )}
                         </button>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600 line-clamp-3 flex-1">{app.description}</p>
-                    <div className="mt-4">
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {app.techStack.slice(0, 3).map(tech => (
-                                <Badge key={tech} color="gray">{tech}</Badge>
+                    <p className="text-xs xl:text-sm text-gray-600 line-clamp-2 xl:line-clamp-3 flex-1 mb-2">{app.description}</p>
+                    <div className="mt-auto space-y-2">
+                        <div className="flex flex-wrap gap-1">
+                            {app.techStack.slice(0, 2).map(tech => (
+                                <Badge key={tech} color="gray" className="text-xs">{tech}</Badge>
                             ))}
-                            {app.techStack.length > 3 && (
-                                <span className="text-xs text-gray-500 self-center">+{app.techStack.length - 3}</span>
+                            {app.techStack.length > 2 && (
+                                <span className="text-xs text-gray-500 self-center">+{app.techStack.length - 2}</span>
                             )}
                         </div>
-                        <div className="flex gap-2">
-                            <Button 
-                                variant="outline" 
-                                className="flex-1 justify-center transition-all" 
-                                icon={Edit}
-                                onClick={() => setEditingAppId(app.id)}
-                                disabled={loadingStates[`updateApp-${app.id}`]}
-                            >
-                                {loadingStates[`updateApp-${app.id}`] ? 'Updating...' : 'Edit'}
-                            </Button>
-                            <Link to={`/app/${app.id}`} className="flex-1">
-                                <Button variant="outline" className="w-full justify-center transition-all">
-                                    View Details
+                        <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
+                            {app.demoUrl && (
+                                <Button 
+                                    variant="primary" 
+                                    className="flex-1 min-w-0 justify-center text-xs py-1.5 px-2 transition-all" 
+                                    icon={ExternalLink}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        window.open(app.demoUrl, '_blank', 'noopener,noreferrer');
+                                    }}
+                                >
+                                    Demo
+                                </Button>
+                            )}
+                            <Link to={`/app/${app.id}`} className={app.demoUrl ? "flex-1 min-w-0" : "flex-1"}>
+                                <Button variant="outline" className="w-full justify-center text-xs py-1.5 px-2 transition-all">
+                                    Details
                                 </Button>
                             </Link>
+                            <Button 
+                                variant="outline" 
+                                className="flex-shrink-0 px-2 py-1.5 transition-all" 
+                                icon={Edit}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingAppId(app.id);
+                                }}
+                                disabled={loadingStates[`updateApp-${app.id}`]}
+                                title="Edit"
+                            >
+                                {loadingStates[`updateApp-${app.id}`] ? (
+                                    <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                ) : null}
+                            </Button>
                         </div>
                     </div>
                 </div>

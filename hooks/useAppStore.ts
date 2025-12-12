@@ -64,7 +64,7 @@ export const useAppStore = () => {
         thumbnailUrl: app.thumbnailUrl || undefined,
         imageUrl: app.imageUrl || undefined
       });
-      setApps([newApp, ...apps]);
+      setApps(prev => [newApp, ...prev]);
       return newApp;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create app';
@@ -81,7 +81,7 @@ export const useAppStore = () => {
       setError(null);
       setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       const updatedApp = await appsApi.update(id, app);
-      setApps(apps.map(a => a.id === id ? updatedApp : a));
+      setApps(prev => prev.map(a => a.id === id ? updatedApp : a));
       return updatedApp;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update app';
@@ -96,7 +96,7 @@ export const useAppStore = () => {
     try {
       setError(null);
       const newFeedback = await feedbackApi.create(feedback);
-      setFeedbacks([newFeedback, ...feedbacks]);
+      setFeedbacks(prev => [newFeedback, ...prev]);
       return newFeedback;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create feedback';
@@ -112,26 +112,32 @@ export const useAppStore = () => {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       
       // Optimistic update
-      const currentFeedback = feedbacks.find(f => f.id === id);
-      if (currentFeedback) {
-        setFeedbacks(feedbacks.map(f => 
-          f.id === id ? { ...f, votes: f.votes + 1 } : f
-        ));
-      }
+      setFeedbacks(prev => {
+        const currentFeedback = prev.find(f => f.id === id);
+        if (currentFeedback) {
+          return prev.map(f => 
+            f.id === id ? { ...f, votes: f.votes + 1 } : f
+          );
+        }
+        return prev;
+      });
       
       const updatedFeedback = await feedbackApi.vote(id, 1);
-      setFeedbacks(feedbacks.map(f => 
+      setFeedbacks(prev => prev.map(f => 
         f.id === id ? updatedFeedback : f
       ));
       return updatedFeedback;
     } catch (err) {
       // Revert optimistic update on error
-      const currentFeedback = feedbacks.find(f => f.id === id);
-      if (currentFeedback) {
-        setFeedbacks(feedbacks.map(f => 
-          f.id === id ? { ...f, votes: Math.max(0, f.votes - 1) } : f
-        ));
-      }
+      setFeedbacks(prev => {
+        const currentFeedback = prev.find(f => f.id === id);
+        if (currentFeedback) {
+          return prev.map(f => 
+            f.id === id ? { ...f, votes: Math.max(0, f.votes - 1) } : f
+          );
+        }
+        return prev;
+      });
       const errorMessage = err instanceof Error ? err.message : 'Failed to vote feedback';
       setError(errorMessage);
       throw err;
@@ -165,7 +171,7 @@ export const useAppStore = () => {
       const feedbacksData = await feedbackApi.getAll(appId);
       if (appId) {
         // Update only feedbacks for this app
-        setFeedbacks(feedbacks.map(f => 
+        setFeedbacks(prev => prev.map(f => 
           f.appId === appId ? feedbacksData.find(nf => nf.id === f.id) || f : f
         ));
       } else {
