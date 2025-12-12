@@ -23,3 +23,4 @@ CREATE INDEX IF NOT EXISTS idx_ai_insights_created_at ON ai_insights(created_at 
 
 
 
+
