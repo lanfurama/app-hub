@@ -183,6 +183,24 @@ export const useAppStore = () => {
     }
   };
 
+  const deleteApp = async (id: string): Promise<void> => {
+    const loadingKey = `deleteApp-${id}`;
+    try {
+      setError(null);
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
+      await appsApi.delete(id);
+      setApps(prev => prev.filter(a => a.id !== id));
+      // Also remove related feedbacks
+      setFeedbacks(prev => prev.filter(f => f.appId !== id));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete app';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
+    }
+  };
+
   return {
     apps,
     feedbacks,
@@ -191,6 +209,7 @@ export const useAppStore = () => {
     loadingStates,
     addApp,
     updateApp,
+    deleteApp,
     addFeedback,
     voteFeedback,
     getAppFeedbacks,
