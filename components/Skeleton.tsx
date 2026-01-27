@@ -119,4 +119,3 @@ export const AppDetailsSkeleton: React.FC = () => (
     </div>
   </div>
 );
-
