@@ -28,8 +28,11 @@ export const EditApp: React.FC = () => {
       setDemoUrl(app.demoUrl || '');
       setTechStackInput(app.techStack.join(', '));
       const imgUrl = app.imageUrl || app.thumbnailUrl || '';
-      setImageUrl(imgUrl);
-      setImagePreview(imgUrl || null);
+      // Filter out random picsum.photos images
+      const isRandomImage = imgUrl && imgUrl.includes('picsum.photos');
+      const validImgUrl = isRandomImage ? '' : imgUrl;
+      setImageUrl(validImgUrl);
+      setImagePreview(validImgUrl || null);
     }
   }, [app]);
 
@@ -141,13 +144,17 @@ export const EditApp: React.FC = () => {
               <Input 
                 value={imageUrl} 
                 onChange={(e) => {
-                  setImageUrl(e.target.value);
-                  setImagePreview(e.target.value || null);
+                  const newUrl = e.target.value;
+                  // Filter out random picsum.photos images
+                  const isRandomImage = newUrl && newUrl.includes('picsum.photos');
+                  const validUrl = isRandomImage ? '' : newUrl;
+                  setImageUrl(validUrl);
+                  setImagePreview(validUrl || null);
                 }} 
                 placeholder="https://example.com/image.jpg"
                 type="url"
               />
-              {imagePreview && (
+              {imagePreview && !imagePreview.includes('picsum.photos') && (
                 <div className="mt-2">
                   <img 
                     src={imagePreview} 

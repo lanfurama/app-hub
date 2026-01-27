@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import appsRouter from './api/routes/apps.js';
 import feedbackRouter from './api/routes/feedback.js';
+import aiInsightsRouter from './api/routes/aiInsights.js';
+import geminiRouter from './api/routes/gemini.js';
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ export function apiPlugin() {
       // API Routes với prefix /api/v1
       app.use('/api/v1/apps', appsRouter);
       app.use('/api/v1/feedback', feedbackRouter);
+      app.use('/api/v1/ai-insights', aiInsightsRouter);
+      app.use('/api/v1/gemini', geminiRouter);
 
       // 404 handler
       app.use('/api/v1/*', (req, res) => {
@@ -45,6 +49,8 @@ export function apiPlugin() {
       console.log('📊 Health check: http://localhost:3000/api/v1/health');
       console.log('📱 Apps API: http://localhost:3000/api/v1/apps');
       console.log('💬 Feedback API: http://localhost:3000/api/v1/feedback');
+      console.log('🤖 AI Insights API: http://localhost:3000/api/v1/ai-insights');
+      console.log('✨ Gemini API: http://localhost:3000/api/v1/gemini');
     }
   };
 }

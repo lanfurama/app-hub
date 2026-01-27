@@ -24,15 +24,28 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return response.json();
 }
 
+// Helper function to handle fetch errors with better error messages
+async function safeFetch(url: string, options?: RequestInit): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+    return response;
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error('Failed to fetch apps - API server may not be ready. Please wait a moment and refresh.');
+    }
+    throw error;
+  }
+}
+
 // Apps API
 export const appsApi = {
   getAll: async (): Promise<AppData[]> => {
-    const response = await fetch(`${API_BASE_URL}/apps`);
+    const response = await safeFetch(`${API_BASE_URL}/apps`);
     return handleResponse<AppData[]>(response);
   },
 
   getById: async (id: string): Promise<AppData> => {
-    const response = await fetch(`${API_BASE_URL}/apps/${id}`);
+    const response = await safeFetch(`${API_BASE_URL}/apps/${id}`);
     return handleResponse<AppData>(response);
   },
 
@@ -42,7 +55,7 @@ export const appsApi = {
       id: crypto.randomUUID(),
       createdAt: Date.now(),
     };
-    const response = await fetch(`${API_BASE_URL}/apps`, {
+    const response = await safeFetch(`${API_BASE_URL}/apps`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +66,7 @@ export const appsApi = {
   },
 
   update: async (id: string, app: Partial<AppData>): Promise<AppData> => {
-    const response = await fetch(`${API_BASE_URL}/apps/${id}`, {
+    const response = await safeFetch(`${API_BASE_URL}/apps/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -64,7 +77,7 @@ export const appsApi = {
   },
 
   delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/apps/${id}`, {
+    const response = await safeFetch(`${API_BASE_URL}/apps/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -80,12 +93,12 @@ export const feedbackApi = {
     const url = appId 
       ? `${API_BASE_URL}/feedback?appId=${appId}`
       : `${API_BASE_URL}/feedback`;
-    const response = await fetch(url);
+    const response = await safeFetch(url);
     return handleResponse<Feedback[]>(response);
   },
 
   getById: async (id: string): Promise<Feedback> => {
-    const response = await fetch(`${API_BASE_URL}/feedback/${id}`);
+    const response = await safeFetch(`${API_BASE_URL}/feedback/${id}`);
     return handleResponse<Feedback>(response);
   },
 
@@ -97,7 +110,7 @@ export const feedbackApi = {
       votes: 0,
       status: 'OPEN',
     };
-    const response = await fetch(`${API_BASE_URL}/feedback`, {
+    const response = await safeFetch(`${API_BASE_URL}/feedback`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +121,7 @@ export const feedbackApi = {
   },
 
   update: async (id: string, feedback: Partial<Feedback>): Promise<Feedback> => {
-    const response = await fetch(`${API_BASE_URL}/feedback/${id}`, {
+    const response = await safeFetch(`${API_BASE_URL}/feedback/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +132,7 @@ export const feedbackApi = {
   },
 
   vote: async (id: string, increment: number = 1): Promise<Feedback> => {
-    const response = await fetch(`${API_BASE_URL}/feedback/${id}/vote`, {
+    const response = await safeFetch(`${API_BASE_URL}/feedback/${id}/vote`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -130,7 +143,7 @@ export const feedbackApi = {
   },
 
   delete: async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/feedback/${id}`, {
+    const response = await safeFetch(`${API_BASE_URL}/feedback/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
