@@ -41,7 +41,11 @@ router.get('/', async (req, res) => {
       createdAt: parseInt(row.created_at),
       thumbnailUrl: row.thumbnail_url || row.image_url,
       imageUrl: row.image_url || row.thumbnail_url,
-      aiInsights: row.ai_insights
+      aiInsights: row.ai_insights,
+      status: row.status || 'ACTIVE',
+      version: row.version || '1.0.0',
+      category: row.category || 'OTHER',
+      icon: row.icon || null
     }));
 
     res.json(apps);
@@ -72,7 +76,11 @@ router.get('/:id', async (req, res) => {
       createdAt: parseInt(row.created_at),
       thumbnailUrl: row.thumbnail_url || row.image_url,
       imageUrl: row.image_url || row.thumbnail_url,
-      aiInsights: row.ai_insights
+      aiInsights: row.ai_insights,
+      status: row.status || 'ACTIVE',
+      version: row.version || '1.0.0',
+      category: row.category || 'OTHER',
+      icon: row.icon || null
     };
 
     res.json(app);
@@ -95,7 +103,11 @@ router.post('/', async (req, res) => {
       createdAt,
       thumbnailUrl,
       imageUrl,
-      aiInsights
+      aiInsights,
+      status,
+      version,
+      category,
+      icon
     } = req.body;
 
     if (!id || !name || !description || !techStack || !createdAt) {
@@ -104,10 +116,14 @@ router.post('/', async (req, res) => {
 
     const imageUrlValue = imageUrl || thumbnailUrl || null;
     const result = await pool.query(
-      `INSERT INTO apps (id, name, description, github_url, demo_url, tech_stack, created_at, thumbnail_url, image_url, ai_insights)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `INSERT INTO apps (id, name, description, github_url, demo_url, tech_stack, created_at, thumbnail_url, image_url, ai_insights, status, version, category, icon)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
        RETURNING *`,
-      [id, name, description, githubUrl || null, demoUrl || null, techStack, createdAt, imageUrlValue, imageUrlValue, aiInsights || null]
+      [
+        id, name, description, githubUrl || null, demoUrl || null, techStack, createdAt,
+        imageUrlValue, imageUrlValue, aiInsights || null,
+        status || 'ACTIVE', version || '1.0.0', category || 'OTHER', icon || null
+      ]
     );
 
       const row = result.rows[0];
@@ -146,7 +162,11 @@ router.put('/:id', async (req, res) => {
       techStack,
       thumbnailUrl,
       imageUrl,
-      aiInsights
+      aiInsights,
+      status,
+      version,
+      category,
+      icon
     } = req.body;
 
     const imageUrlValue = imageUrl !== undefined ? imageUrl : thumbnailUrl;
@@ -161,10 +181,14 @@ router.put('/:id', async (req, res) => {
            tech_stack = COALESCE($5, tech_stack),
            thumbnail_url = COALESCE($6, thumbnail_url),
            image_url = COALESCE($7, image_url),
-           ai_insights = COALESCE($8, ai_insights)
-       WHERE id = $9
+           ai_insights = COALESCE($8, ai_insights),
+           status = COALESCE($9, status),
+           version = COALESCE($10, version),
+           category = COALESCE($11, category),
+           icon = COALESCE($12, icon)
+       WHERE id = $13
        RETURNING *`,
-      [name, description, githubUrl, demoUrl, techStack, thumbnailValue, imageUrlValue, aiInsights, id]
+      [name, description, githubUrl, demoUrl, techStack, thumbnailValue, imageUrlValue, aiInsights, status, version, category, icon, id]
     );
 
     if (result.rows.length === 0) {
@@ -182,7 +206,11 @@ router.put('/:id', async (req, res) => {
       createdAt: parseInt(row.created_at),
       thumbnailUrl: row.thumbnail_url || row.image_url,
       imageUrl: row.image_url || row.thumbnail_url,
-      aiInsights: row.ai_insights
+      aiInsights: row.ai_insights,
+      status: row.status || 'ACTIVE',
+      version: row.version || '1.0.0',
+      category: row.category || 'OTHER',
+      icon: row.icon || null
     };
 
     res.json(app);

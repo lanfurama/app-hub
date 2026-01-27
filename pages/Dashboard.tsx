@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppStore } from '../hooks/useAppStore';
 import { Card, Badge, Button } from '../components/UI';
+import { AppCard } from '../components/AppCard';
 import { EditAppModal } from '../components/EditAppModal';
 import { NewAppModal } from '../components/NewAppModal';
 import { CardSkeleton, StatsSkeleton } from '../components/Skeleton';
@@ -86,8 +87,8 @@ const ImageWithFallback: React.FC<{
 };
 
 // LocalStorage helpers for favorites and recent apps
-const FAVORITES_KEY = 'app-hub-favorites';
-const RECENT_APPS_KEY = 'app-hub-recent';
+const FAVORITES_KEY = 'furama-lab-favorites';
+const RECENT_APPS_KEY = 'furama-lab-recent';
 
 const getFavorites = (): string[] => {
   if (typeof window === 'undefined') return [];
@@ -128,11 +129,20 @@ const addRecentApp = (appId: string) => {
   }
 };
 
-export const Dashboard: React.FC = () => {
+interface DashboardProps {
+  searchQuery?: string;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({ searchQuery: externalSearchQuery = '' }) => {
   const { apps, feedbacks, isLoaded, error, loadingStates, deleteApp } = useAppStore();
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
+  
+  // Sync external search query
+  useEffect(() => {
+    setSearchQuery(externalSearchQuery);
+  }, [externalSearchQuery]);
   const [selectedTechStack, setSelectedTechStack] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -367,7 +377,7 @@ export const Dashboard: React.FC = () => {
 
   if (!isLoaded) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <StatsSkeleton />
           <StatsSkeleton />
@@ -386,7 +396,7 @@ export const Dashboard: React.FC = () => {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
           <p className="text-red-800 font-medium">Error loading data</p>
           <p className="text-red-600 text-sm mt-2">{error}</p>
@@ -396,113 +406,115 @@ export const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
-        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-bl-full opacity-40"></div>
-          <div className="relative p-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="p-2 bg-indigo-100 rounded-lg flex-shrink-0">
-                <Layers className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Total Applications</p>
-                <p className="text-xl font-bold text-gray-900">{stats.totalApps}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-100 to-red-50 rounded-bl-full opacity-40"></div>
-          <div className="relative p-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
-                <AlertCircle className="w-4 h-4 text-red-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Active Bugs</p>
-                <p className="text-xl font-bold text-gray-900">{stats.totalBugs}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-50 rounded-bl-full opacity-40"></div>
-          <div className="relative p-4">
-            <div className="flex items-center gap-3 flex-1">
-              <div className="p-2 bg-amber-100 rounded-lg flex-shrink-0">
-                <Lightbulb className="w-4 h-4 text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-gray-500 mb-0.5">Feature Requests</p>
-                <p className="text-xl font-bold text-gray-900">{stats.totalFeatures}</p>
-              </div>
-            </div>
-          </div>
-        </Card>
+    <div className="p-6">
+      {/* Page Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Tất cả ứng dụng
+            <span className="ml-2 text-lg font-normal text-gray-500">
+              {filteredApps.length}
+            </span>
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Tổng quan các ứng dụng trong Furama Lab, sắp xếp theo thời gian tạo mới nhất.
+          </p>
+        </div>
+        <Button variant="primary" icon={Plus} onClick={() => setIsNewAppModalOpen(true)}>
+          Đăng ký ứng dụng mới
+        </Button>
       </div>
 
-      {/* Recent Apps Section */}
-      {recentAppsData.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-500" />
-              Xem gần đây
-            </h3>
-          </div>
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {recentAppsData.map(app => (
-              <Link
-                key={app.id}
-                to={`/app/${app.id}`}
-                onClick={() => handleAppView(app.id)}
-                className="flex-shrink-0"
-              >
-                <Card className="p-3 hover:shadow-md transition-shadow min-w-[200px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
-                      <Terminal className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-gray-900 truncate">{app.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{formatDate(app.createdAt)}</p>
-                    </div>
+      {/* Analytics & recent activity (ẩn để giao diện gọn hơn, có thể bật lại sau) */}
+      {false && (
+        <>
+          {/* Header Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4 mb-6">
+            <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-indigo-100 to-indigo-50 rounded-bl-full opacity-40"></div>
+              <div className="relative p-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 bg-indigo-100 rounded-lg flex-shrink-0">
+                    <Layers className="w-4 h-4 text-indigo-600" />
                   </div>
-                </Card>
-              </Link>
-            ))}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">Total Applications</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.totalApps}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-red-100 to-red-50 rounded-bl-full opacity-40"></div>
+              <div className="relative p-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 bg-red-100 rounded-lg flex-shrink-0">
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">Active Bugs</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.totalBugs}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="group relative overflow-hidden fade-in hover:shadow-md transition-all duration-200">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-amber-100 to-amber-50 rounded-bl-full opacity-40"></div>
+              <div className="relative p-4">
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="p-2 bg-amber-100 rounded-lg flex-shrink-0">
+                    <Lightbulb className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">Feature Requests</p>
+                    <p className="text-xl font-bold text-gray-900">{stats.totalFeatures}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
           </div>
-        </div>
+
+          {/* Recent Apps Section */}
+          {recentAppsData.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-gray-500" />
+                  Xem gần đây
+                </h3>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2">
+                {recentAppsData.map(app => (
+                  <Link
+                    key={app.id}
+                    to={`/app/${app.id}`}
+                    onClick={() => handleAppView(app.id)}
+                    className="flex-shrink-0"
+                  >
+                    <Card className="p-3 hover:shadow-md transition-shadow min-w-[200px]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex items-center justify-center">
+                          <Terminal className="w-6 h-6 text-gray-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm text-gray-900 truncate">{app.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{formatDate(app.createdAt)}</p>
+                        </div>
+                      </div>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Search and Filter Section */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Your Applications</h2>
-          <div className="flex gap-2 flex-wrap">
-            {selectedApps.size > 0 && (
-              <>
-                <Button variant="outline" icon={Trash2} onClick={handleBulkDelete}>
-                  Xóa ({selectedApps.size})
-                </Button>
-                <Button variant="outline" icon={Download} onClick={handleExport}>
-                  Export
-                </Button>
-              </>
-            )}
-            <Button variant="outline" icon={Upload} onClick={() => setShowImportModal(true)}>
-              Import
-            </Button>
-            <Button variant="primary" icon={Plus} onClick={() => setIsNewAppModalOpen(true)}>
-              Create New App
-            </Button>
-          </div>
-        </div>
-
+      {/* Search/Filter UI - Hidden, logic still works via Header search */}
+      {false && (
+        <>
         {/* Quick Filters */}
         <div className="flex flex-wrap gap-2">
           <button
@@ -701,7 +713,8 @@ export const Dashboard: React.FC = () => {
             </button>
           )}
         </div>
-      </div>
+        </>
+      )}
       
       {apps.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-lg border-2 border-dashed border-gray-300">
@@ -734,8 +747,20 @@ export const Dashboard: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* App Grid/List */}
-          {viewMode === 'grid' ? (
+          {/* App Grid */}
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {paginatedApps.map((app, index) => (
+              <AppCard
+                key={app.id}
+                app={app}
+                onView={handleAppView}
+                onEdit={(appId) => setEditingAppId(appId)}
+              />
+            ))}
+          </div>
+          
+          {/* Old Grid View - Commented out for now */}
+          {false && viewMode === 'grid' ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
               {paginatedApps.map((app, index) => {
                 const feedbackCounts = getAppFeedbackCounts(app.id);
@@ -1142,6 +1167,14 @@ export const Dashboard: React.FC = () => {
         onClose={() => setIsNewAppModalOpen(false)}
         onSuccess={() => {}}
       />
+
+      {/* Floating Chat Button */}
+      <button
+        className="fixed bottom-6 right-6 w-14 h-14 bg-emerald-700 text-white rounded-full shadow-lg hover:bg-emerald-800 transition-all flex items-center justify-center z-50"
+        aria-label="Chat hỗ trợ"
+      >
+        <MessageSquare className="w-6 h-6" />
+      </button>
     </div>
   );
 };

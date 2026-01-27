@@ -35,10 +35,10 @@ export const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', i
   const baseStyle = `inline-flex items-center justify-center border font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${sizeStyles[size]}`;
   
   const variants = {
-    primary: "border-transparent text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 shadow-sm",
-    secondary: "border-transparent text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:ring-indigo-500",
-    outline: "border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-indigo-500",
-    ghost: "border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100",
+    primary: "border-transparent text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-emerald-600 shadow-sm",
+    secondary: "border-transparent text-emerald-800 bg-emerald-50 hover:bg-emerald-100 focus:ring-emerald-600",
+    outline: "border-gray-300 text-gray-700 bg-white hover:bg-emerald-50 focus:ring-emerald-600",
+    ghost: "border-transparent text-gray-500 hover:text-emerald-800 hover:bg-emerald-50",
   };
 
   const iconSize = size === 'sm' ? 'h-3 w-3' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
@@ -72,7 +72,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       )}
       <input
         ref={ref}
-        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
+        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
         disabled={disabled}
         {...props}
       />
@@ -95,7 +95,7 @@ export const TextArea = React.forwardRef<HTMLTextAreaElement, TextAreaProps>(
       )}
       <textarea
         ref={ref}
-        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
+        className={`block w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed ${className}`}
         disabled={disabled}
         {...props}
       />
@@ -192,11 +192,11 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <h3 id="modal-title" className="text-lg font-medium text-gray-900">{title}</h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-md p-1"
+                className="text-gray-400 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 rounded-md p-1"
                 aria-label="Close modal"
               >
                 <span className="sr-only">Close</span>

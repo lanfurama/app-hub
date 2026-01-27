@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Layers } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
@@ -13,16 +12,27 @@ export const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <Layers className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">AppHub</span>
+              <img
+                src="/icon.jpg"
+                alt="Furama Digital Business"
+                className="h-8 w-8 object-contain"
+              />
+              <div className="ml-2 flex flex-col leading-tight">
+                <span className="text-base font-semibold text-slate-900">
+                  Furama Lab
+                </span>
+                <span className="text-xs font-medium text-emerald-700">
+                  Digital Business Workspace
+                </span>
+              </div>
             </Link>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               <Link
                 to="/"
                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
-                  isActive('/') 
-                    ? 'border-indigo-500 text-gray-900' 
-                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                  isActive('/')
+                    ? 'border-emerald-700 text-slate-900'
+                    : 'border-transparent text-slate-500 hover:border-emerald-200 hover:text-slate-700'
                 }`}
               >
                 Dashboard

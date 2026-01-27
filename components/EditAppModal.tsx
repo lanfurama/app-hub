@@ -3,6 +3,7 @@ import { useAppStore } from '../hooks/useAppStore';
 import { Input, TextArea, Button, Modal } from './UI';
 import { useToast } from './Toast';
 import { Save } from 'lucide-react';
+import { AppStatus, AppCategory } from '../types';
 
 interface EditAppModalProps {
   appId: string;
@@ -25,6 +26,10 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
   const [techStackInput, setTechStackInput] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [status, setStatus] = useState<AppStatus>('ACTIVE');
+  const [version, setVersion] = useState('');
+  const [category, setCategory] = useState<AppCategory>('OTHER');
+  const [icon, setIcon] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -41,6 +46,10 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
       const validImgUrl = isRandomImage ? '' : imgUrl;
       setImageUrl(validImgUrl);
       setImagePreview(validImgUrl || null);
+      setStatus(app.status || 'ACTIVE');
+      setVersion(app.version || '1.0.0');
+      setCategory(app.category || 'OTHER');
+      setIcon(app.icon || '');
     }
   }, [app, isOpen]);
 
@@ -106,6 +115,10 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
         techStack,
         thumbnailUrl: imageUrl || undefined,
         imageUrl: imageUrl || undefined,
+        status,
+        version: version || '1.0.0',
+        category,
+        icon: icon || undefined,
       });
       
       toast.success('Application updated successfully!');
@@ -243,6 +256,63 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
               />
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Trạng thái
+            </label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as AppStatus)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
+            >
+              <option value="ACTIVE">Hoạt động</option>
+              <option value="TRIAL">Thử nghiệm</option>
+              <option value="MAINTENANCE">Bảo trì</option>
+            </select>
+          </div>
+          
+          <div>
+            <Input 
+              label="Phiên bản" 
+              value={version} 
+              onChange={(e) => setVersion(e.target.value)} 
+              placeholder="1.0.0"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Danh mục
+            </label>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value as AppCategory)}
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
+            >
+              <option value="OPERATIONS">Vận hành</option>
+              <option value="MARKETING">Marketing</option>
+              <option value="HR">Nhân sự</option>
+              <option value="FINANCE">Tài chính</option>
+              <option value="TECHNICAL">Kỹ thuật</option>
+              <option value="CUSTOMER">Khách hàng</option>
+              <option value="OTHER">Khác</option>
+            </select>
+          </div>
+          
+          <div>
+            <Input 
+              label="Icon (Emoji)" 
+              value={icon} 
+              onChange={(e) => setIcon(e.target.value)} 
+              placeholder="📊, 👥, 💰, etc."
+              maxLength={2}
+            />
+          </div>
         </div>
 
         <div className="pt-5 border-t border-gray-200 flex justify-end space-x-3">
