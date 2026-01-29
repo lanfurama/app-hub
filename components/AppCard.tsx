@@ -4,34 +4,20 @@ import { Badge, Card } from './UI';
 import { AppData } from '../types';
 import { Edit } from 'lucide-react';
 
+const STAGGER_CLASSES = ['stagger-1', 'stagger-2', 'stagger-3', 'stagger-4', 'stagger-5', 'stagger-6', 'stagger-7', 'stagger-8', 'stagger-9', 'stagger-10', 'stagger-11', 'stagger-12'] as const;
+
 interface AppCardProps {
   app: AppData;
   onView?: (appId: string) => void;
   onEdit?: (appId: string) => void;
+  /** Index in grid for stagger animation delay (0-based) */
+  index?: number;
 }
 
 // Helper to get app icon from app data or fallback logic
 const getAppIcon = (app: AppData): string => {
-  // Use icon from database if available
   if (app.icon) return app.icon;
-  
-  // Fallback: determine icon based on category
-  if (app.category === 'OPERATIONS') return '📊';
-  if (app.category === 'HR') return '👥';
-  if (app.category === 'FINANCE') return '💰';
-  if (app.category === 'MARKETING') return '📢';
-  if (app.category === 'TECHNICAL') return '📡';
-  if (app.category === 'CUSTOMER') return '👤';
-  
-  // Fallback: determine icon based on name
-  const name = app.name.toLowerCase();
-  if (name.includes('pms') || name.includes('core')) return '📊';
-  if (name.includes('staff') || name.includes('nhân sự')) return '👥';
-  if (name.includes('revenue') || name.includes('tài chính')) return '💰';
-  if (name.includes('kitchen') || name.includes('nhà bếp')) return '🍽️';
-  if (name.includes('marketing')) return '📢';
-  if (name.includes('network') || name.includes('mạng')) return '📡';
-  
+  if (app.category === 'DIGITAL_TOOLS') return '🛠️';
   return '💻';
 };
 
@@ -58,22 +44,7 @@ const getVersion = (app: AppData): string => {
 // Get human-readable category label
 const getCategoryLabel = (app: AppData): string => {
   const category = app.category || 'OTHER';
-  switch (category) {
-    case 'OPERATIONS':
-      return 'Vận hành';
-    case 'MARKETING':
-      return 'Marketing';
-    case 'HR':
-      return 'Nhân sự';
-    case 'FINANCE':
-      return 'Tài chính';
-    case 'TECHNICAL':
-      return 'Kỹ thuật';
-    case 'CUSTOMER':
-      return 'Khách hàng';
-    default:
-      return 'Khác';
-  }
+  return category === 'DIGITAL_TOOLS' ? 'Digital Tools' : 'Khác';
 };
 
 // Image component with fallback
@@ -108,11 +79,12 @@ const ImageWithFallback: React.FC<{
   );
 };
 
-export const AppCard: React.FC<AppCardProps> = ({ app, onView, onEdit }) => {
+export const AppCard: React.FC<AppCardProps> = ({ app, onView, onEdit, index = 0 }) => {
   const status = getStatusBadge(app);
   const version = getVersion(app);
   const icon = getAppIcon(app);
   const categoryLabel = getCategoryLabel(app);
+  const staggerClass = STAGGER_CLASSES[index % STAGGER_CLASSES.length];
   
   // Get image URL (prefer imageUrl, fallback to thumbnailUrl)
   const imageUrl = app.imageUrl || app.thumbnailUrl;
@@ -120,24 +92,28 @@ export const AppCard: React.FC<AppCardProps> = ({ app, onView, onEdit }) => {
   const hasValidImage = imageUrl && !isRandomImage;
 
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 border border-gray-200 relative group">
+    <Card className={`overflow-hidden border border-gray-200 relative group card-stagger card-hover ${staggerClass}`}>
       {/* App Image */}
       <div className="relative h-40 bg-gray-100 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
         {hasValidImage ? (
-          <ImageWithFallback
-            src={imageUrl}
-            alt={app.name}
-            fallback={
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
-                <span className="text-4xl">{icon}</span>
-              </div>
-            }
-          />
+          <div className="card-image-zoom w-full h-full">
+            <ImageWithFallback
+              src={imageUrl}
+              alt={app.name}
+              fallback={
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+                  <span className="text-4xl">{icon}</span>
+                </div>
+              }
+            />
+          </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
+          <div className="card-image-zoom w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-emerald-100">
             <span className="text-4xl">{icon}</span>
           </div>
         )}
+        </div>
         
         {/* Status Badge - Overlay on image */}
         <div className="absolute top-3 right-3">

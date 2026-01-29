@@ -1,20 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import { AppData, Feedback } from '../types';
 import { appsApi, feedbackApi } from '../services/apiService';
 
-export const useAppStore = () => {
+export interface AppStoreValue {
+  apps: AppData[];
+  feedbacks: Feedback[];
+  isLoaded: boolean;
+  error: string | null;
+  loadingStates: Record<string, boolean>;
+  addApp: (app: Omit<AppData, 'id' | 'createdAt'>) => Promise<AppData>;
+  updateApp: (id: string, app: Partial<AppData>) => Promise<AppData>;
+  deleteApp: (id: string) => Promise<void>;
+  addFeedback: (feedback: Omit<Feedback, 'id' | 'createdAt' | 'votes' | 'status'>) => Promise<Feedback>;
+  voteFeedback: (id: string) => Promise<Feedback>;
+  getAppFeedbacks: (appId: string) => Feedback[];
+  getApp: (id: string) => AppData | undefined;
+  refreshApps: () => Promise<void>;
+  refreshFeedbacks: (appId?: string) => Promise<void>;
+}
+
+const AppStoreContext = createContext<AppStoreValue | null>(null);
+
+export const AppStoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [apps, setApps] = useState<AppData[]>([]);
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({});
 
-  // Load data from API with retry logic
   useEffect(() => {
     const loadData = async (retryCount = 0) => {
       const MAX_RETRIES = 3;
-      const RETRY_DELAY = 1000; // Start with 1 second
-      
+      const RETRY_DELAY = 1000;
       try {
         setError(null);
         setLoadingStates(prev => ({ ...prev, initialLoad: true }));
@@ -22,39 +39,31 @@ export const useAppStore = () => {
           appsApi.getAll(),
           feedbackApi.getAll()
         ]);
-        // Small delay for smooth transition
         await new Promise(resolve => setTimeout(resolve, 100));
         setApps(appsData);
         setFeedbacks(feedbacksData);
         setIsLoaded(true);
       } catch (err) {
         console.error('Error loading data:', err);
-        
-        // Retry logic for network errors
         if (retryCount < MAX_RETRIES && (
-          err instanceof TypeError || // Network error
+          err instanceof TypeError ||
           (err instanceof Error && err.message.includes('Failed to fetch')) ||
           (err instanceof Error && err.message.includes('Network error'))
         )) {
-          const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
-          console.log(`Retrying in ${delay}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-          setTimeout(() => {
-            loadData(retryCount + 1);
-          }, delay);
+          const delay = RETRY_DELAY * Math.pow(2, retryCount);
+          setTimeout(() => loadData(retryCount + 1), delay);
           return;
         }
-        
         setError(err instanceof Error ? err.message : 'Failed to load data');
-        setIsLoaded(true); // Still set loaded to true to show error state
+        setIsLoaded(true);
       } finally {
         setLoadingStates(prev => ({ ...prev, initialLoad: false }));
       }
     };
-
     loadData();
   }, []);
 
-  const addApp = async (app: Omit<AppData, 'id' | 'createdAt'>) => {
+  const addApp = useCallback(async (app: Omit<AppData, 'id' | 'createdAt'>) => {
     const loadingKey = 'addApp';
     try {
       setError(null);
@@ -67,15 +76,14 @@ export const useAppStore = () => {
       setApps(prev => [newApp, ...prev]);
       return newApp;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create app';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to create app');
       throw err;
     } finally {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
-  };
+  }, []);
 
-  const updateApp = async (id: string, app: Partial<AppData>) => {
+  const updateApp = useCallback(async (id: string, app: Partial<AppData>) => {
     const loadingKey = `updateApp-${id}`;
     try {
       setError(null);
@@ -84,124 +92,100 @@ export const useAppStore = () => {
       setApps(prev => prev.map(a => a.id === id ? updatedApp : a));
       return updatedApp;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update app';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to update app');
       throw err;
     } finally {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
-  };
+  }, []);
 
-  const addFeedback = async (feedback: Omit<Feedback, 'id' | 'createdAt' | 'votes' | 'status'>) => {
+  const addFeedback = useCallback(async (feedback: Omit<Feedback, 'id' | 'createdAt' | 'votes' | 'status'>) => {
     try {
       setError(null);
       const newFeedback = await feedbackApi.create(feedback);
       setFeedbacks(prev => [newFeedback, ...prev]);
       return newFeedback;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create feedback';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to create feedback');
       throw err;
     }
-  };
+  }, []);
 
-  const voteFeedback = async (id: string) => {
+  const voteFeedback = useCallback(async (id: string) => {
     const loadingKey = `voteFeedback-${id}`;
     try {
       setError(null);
       setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
-      
-      // Optimistic update
       setFeedbacks(prev => {
-        const currentFeedback = prev.find(f => f.id === id);
-        if (currentFeedback) {
-          return prev.map(f => 
-            f.id === id ? { ...f, votes: f.votes + 1 } : f
-          );
-        }
+        const current = prev.find(f => f.id === id);
+        if (current) return prev.map(f => f.id === id ? { ...f, votes: f.votes + 1 } : f);
         return prev;
       });
-      
-      const updatedFeedback = await feedbackApi.vote(id, 1);
-      setFeedbacks(prev => prev.map(f => 
-        f.id === id ? updatedFeedback : f
-      ));
-      return updatedFeedback;
+      const updated = await feedbackApi.vote(id, 1);
+      setFeedbacks(prev => prev.map(f => f.id === id ? updated : f));
+      return updated;
     } catch (err) {
-      // Revert optimistic update on error
       setFeedbacks(prev => {
-        const currentFeedback = prev.find(f => f.id === id);
-        if (currentFeedback) {
-          return prev.map(f => 
-            f.id === id ? { ...f, votes: Math.max(0, f.votes - 1) } : f
-          );
-        }
+        const current = prev.find(f => f.id === id);
+        if (current) return prev.map(f => f.id === id ? { ...f, votes: Math.max(0, f.votes - 1) } : f);
         return prev;
       });
-      const errorMessage = err instanceof Error ? err.message : 'Failed to vote feedback';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to vote feedback');
       throw err;
     } finally {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
-  };
+  }, []);
 
   const getAppFeedbacks = useCallback((appId: string) => {
     return feedbacks.filter(f => f.appId === appId);
   }, [feedbacks]);
 
-  const getApp = useCallback((id: string) => {
-    return apps.find(a => a.id === id);
-  }, [apps]);
+  const getApp = useCallback((id: string) => apps.find(a => a.id === id), [apps]);
 
-  const refreshApps = async () => {
+  const refreshApps = useCallback(async () => {
     try {
       setError(null);
-      const appsData = await appsApi.getAll();
-      setApps(appsData);
+      const data = await appsApi.getAll();
+      setApps(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to refresh apps';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to refresh apps');
     }
-  };
+  }, []);
 
-  const refreshFeedbacks = async (appId?: string) => {
+  const refreshFeedbacks = useCallback(async (appId?: string) => {
     try {
       setError(null);
-      const feedbacksData = await feedbackApi.getAll(appId);
+      const data = await feedbackApi.getAll(appId);
       if (appId) {
-        // Update only feedbacks for this app
-        setFeedbacks(prev => prev.map(f => 
-          f.appId === appId ? feedbacksData.find(nf => nf.id === f.id) || f : f
+        setFeedbacks(prev => prev.map(f =>
+          f.appId === appId ? (data.find(n => n.id === f.id) ?? f) : f
         ));
       } else {
-        setFeedbacks(feedbacksData);
+        setFeedbacks(data);
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to refresh feedbacks';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to refresh feedbacks');
     }
-  };
+  }, []);
 
-  const deleteApp = async (id: string): Promise<void> => {
+  const deleteApp = useCallback(async (id: string) => {
     const loadingKey = `deleteApp-${id}`;
     try {
       setError(null);
       setLoadingStates(prev => ({ ...prev, [loadingKey]: true }));
       await appsApi.delete(id);
       setApps(prev => prev.filter(a => a.id !== id));
-      // Also remove related feedbacks
       setFeedbacks(prev => prev.filter(f => f.appId !== id));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete app';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Failed to delete app');
       throw err;
     } finally {
       setLoadingStates(prev => ({ ...prev, [loadingKey]: false }));
     }
-  };
+  }, []);
 
-  return {
+  const value: AppStoreValue = {
     apps,
     feedbacks,
     isLoaded,
@@ -217,4 +201,18 @@ export const useAppStore = () => {
     refreshApps,
     refreshFeedbacks
   };
+
+  return (
+    <AppStoreContext.Provider value={value}>
+      {children}
+    </AppStoreContext.Provider>
+  );
+};
+
+export const useAppStore = (): AppStoreValue => {
+  const ctx = useContext(AppStoreContext);
+  if (!ctx) {
+    throw new Error('useAppStore must be used within AppStoreProvider');
+  }
+  return ctx;
 };

@@ -174,26 +174,22 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     >
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-gray-500 transition-opacity duration-300 ${
-          isVisible ? 'bg-opacity-75' : 'bg-opacity-0'
-        }`}
+        className={`fixed inset-0 bg-gray-500 ${isVisible ? 'modal-backdrop-enter bg-opacity-75' : 'bg-opacity-0'}`}
         onClick={onClose}
       ></div>
 
       {/* Modal Container */}
-      <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div className="flex min-h-full items-end justify-center p-3 sm:p-4 text-center sm:items-center sm:p-0">
         <div 
-          className={`relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl sm:my-8 sm:w-full sm:max-w-3xl transition-all duration-300 ${
-            isVisible 
-              ? 'opacity-100 scale-100 translate-y-0' 
-              : 'opacity-0 scale-95 translate-y-4'
+          className={`relative transform overflow-hidden rounded-t-xl sm:rounded-lg bg-white text-left shadow-xl w-full max-h-[90vh] sm:max-h-[calc(100vh-4rem)] sm:my-8 sm:max-w-3xl flex flex-col ${
+            isVisible ? 'modal-pop-enter' : 'opacity-0 scale-95 translate-y-4'
           } ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           {title && (
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-              <h3 id="modal-title" className="text-lg font-medium text-gray-900">{title}</h3>
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 flex-shrink-0">
+              <h3 id="modal-title" className="text-base sm:text-lg font-medium text-gray-900 truncate pr-2">{title}</h3>
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-600 rounded-md p-1"
@@ -208,7 +204,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           )}
 
           {/* Content */}
-          <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="px-4 sm:px-6 py-4 overflow-y-auto flex-1 min-h-0">
             {children}
           </div>
         </div>

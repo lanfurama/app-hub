@@ -25,7 +25,7 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [status, setStatus] = useState<AppStatus>('ACTIVE');
   const [version, setVersion] = useState('1.0.0');
-  const [category, setCategory] = useState<AppCategory>('OTHER');
+  const [category, setCategory] = useState<AppCategory>('DIGITAL_TOOLS');
   const [icon, setIcon] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,7 +43,7 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
       setImagePreview(null);
       setStatus('ACTIVE');
       setVersion('1.0.0');
-      setCategory('OTHER');
+      setCategory('DIGITAL_TOOLS');
       setIcon('');
       setErrors({});
     }
@@ -285,12 +285,7 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
               onChange={(e) => setCategory(e.target.value as AppCategory)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
             >
-              <option value="OPERATIONS">Vận hành</option>
-              <option value="MARKETING">Marketing</option>
-              <option value="HR">Nhân sự</option>
-              <option value="FINANCE">Tài chính</option>
-              <option value="TECHNICAL">Kỹ thuật</option>
-              <option value="CUSTOMER">Khách hàng</option>
+              <option value="DIGITAL_TOOLS">Digital Tools</option>
               <option value="OTHER">Khác</option>
             </select>
           </div>

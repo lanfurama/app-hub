@@ -35,7 +35,7 @@ const ToastItem: React.FC<ToastProps> = ({ toast, onRemove }) => {
     setIsLeaving(true);
     setTimeout(() => {
       onRemove(toast.id);
-    }, 300);
+    }, 250);
   };
 
   const icons = {
@@ -56,7 +56,7 @@ const ToastItem: React.FC<ToastProps> = ({ toast, onRemove }) => {
     <div
       className={`
         flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg min-w-[300px] max-w-md
-        ${isVisible && !isLeaving ? 'opacity-100' : 'opacity-0'}
+        ${isLeaving ? 'toast-leave' : isVisible ? 'toast-enter' : 'opacity-0 translate-x-full'}
         ${styles[toast.type]}
       `}
     >

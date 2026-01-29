@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'OTHER',
+      category: row.category || 'DIGITAL_TOOLS',
       icon: row.icon || null
     }));
 
@@ -79,7 +79,7 @@ router.get('/:id', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'OTHER',
+      category: row.category || 'DIGITAL_TOOLS',
       icon: row.icon || null
     };
 
@@ -122,7 +122,7 @@ router.post('/', async (req, res) => {
       [
         id, name, description, githubUrl || null, demoUrl || null, techStack, createdAt,
         imageUrlValue, imageUrlValue, aiInsights || null,
-        status || 'ACTIVE', version || '1.0.0', category || 'OTHER', icon || null
+        status || 'ACTIVE', version || '1.0.0', category || 'DIGITAL_TOOLS', icon || null
       ]
     );
 
@@ -209,7 +209,7 @@ router.put('/:id', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'OTHER',
+      category: row.category || 'DIGITAL_TOOLS',
       icon: row.icon || null
     };
 

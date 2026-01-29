@@ -83,18 +83,18 @@ export const AppDetails: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <Link to="/" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+      <Link to="/" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 sm:mb-6">
         <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
       </Link>
 
       {/* Header */}
-      <div className="bg-white shadow rounded-lg p-6 mb-8 border border-gray-200">
+      <div className="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-200">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-            <div className="flex-1">
-                <div className="flex items-center space-x-3">
-                    <h1 className="text-3xl font-bold text-gray-900">{app.name}</h1>
-                    <div className="flex space-x-2">
+            <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">{app.name}</h1>
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                         {app.techStack.map(t => <Badge key={t} color="blue">{t}</Badge>)}
                     </div>
                 </div>

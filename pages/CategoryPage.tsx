@@ -10,21 +10,12 @@ import { AppCategory } from '../types';
 
 // Map category from URL to AppCategory type
 const categoryMap: Record<string, AppCategory> = {
-  'operations': 'OPERATIONS',
-  'marketing': 'MARKETING',
-  'hr': 'HR',
-  'finance': 'FINANCE',
-  'technical': 'TECHNICAL',
-  'customer': 'CUSTOMER',
+  'digital-tools': 'DIGITAL_TOOLS',
+  'other': 'OTHER',
 };
 
 const categoryLabels: Record<AppCategory, string> = {
-  'OPERATIONS': 'Vận hành',
-  'MARKETING': 'Marketing',
-  'HR': 'Nhân sự',
-  'FINANCE': 'Tài chính',
-  'TECHNICAL': 'Kỹ thuật',
-  'CUSTOMER': 'Khách hàng',
+  'DIGITAL_TOOLS': 'Digital Tools',
   'OTHER': 'Khác',
 };
 
@@ -44,13 +35,15 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
     setSearchQuery(externalSearchQuery);
   }, [externalSearchQuery]);
 
-  const category = categoryId ? categoryMap[categoryId.toLowerCase()] : 'OTHER';
+  const category = categoryId ? categoryMap[categoryId.toLowerCase()] ?? 'OTHER' : 'OTHER';
 
   // Filter apps by category and search
   const filteredApps = useMemo(() => {
     let filtered = apps.filter(app => {
       const appCategory = app.category || 'OTHER';
-      const matchesCategory = appCategory === category;
+      const matchesCategory = category === 'DIGITAL_TOOLS'
+        ? appCategory === 'DIGITAL_TOOLS'
+        : appCategory !== 'DIGITAL_TOOLS'; // OTHER + legacy categories from DB
       
       const matchesSearch = searchQuery === '' || 
         app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -70,7 +63,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
 
   if (!isLoaded) {
     return (
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-200 rounded w-64 mb-6"></div>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -87,8 +80,8 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <div className="p-4 sm:p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 text-center">
           <p className="text-red-800 font-medium">Error loading data</p>
           <p className="text-red-600 text-sm mt-2">{error}</p>
         </div>
@@ -97,13 +90,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
   }
 
   return (
-    <div className="p-6">
+    <div className="p-4 sm:p-6">
       {/* Page Title */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+      <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             {categoryLabels[category]}
-            <span className="ml-2 text-lg font-normal text-gray-500">
+            <span className="ml-2 text-base sm:text-lg font-normal text-gray-500">
               {filteredApps.length}
             </span>
           </h1>
@@ -111,7 +104,7 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
             Danh sách ứng dụng thuộc danh mục {categoryLabels[category]}
           </p>
         </div>
-        <Button variant="primary" icon={Plus} onClick={() => setIsNewAppModalOpen(true)}>
+        <Button variant="primary" icon={Plus} onClick={() => setIsNewAppModalOpen(true)} className="w-full sm:w-auto flex-shrink-0">
           Đăng ký ứng dụng mới
         </Button>
       </div>
@@ -131,10 +124,11 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filteredApps.map((app) => (
+          {filteredApps.map((app, index) => (
             <AppCard
               key={app.id}
               app={app}
+              index={index}
               onView={handleAppView}
               onEdit={(appId) => setEditingAppId(appId)}
             />
