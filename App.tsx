@@ -5,6 +5,7 @@ import { Header } from './components/Header';
 import { ToastProvider } from './components/ToastProvider';
 import { PageLayout } from './components/PageLayout';
 import { AppStoreProvider } from './hooks/useAppStore';
+import { CategoriesProvider } from './hooks/useCategories';
 import { Dashboard } from './pages/Dashboard';
 import { AppDetails } from './pages/AppDetails';
 import { CategoryPage } from './pages/CategoryPage';
@@ -19,6 +20,7 @@ const App: React.FC = () => {
     <Router>
       <ToastProvider>
         <AppStoreProvider>
+        <CategoriesProvider>
         <div className="min-h-screen bg-gray-50">
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <div className="ml-0 md:ml-64 transition-[margin] duration-200">
@@ -36,6 +38,7 @@ const App: React.FC = () => {
             </main>
           </div>
         </div>
+        </CategoriesProvider>
         </AppStoreProvider>
       </ToastProvider>
     </Router>

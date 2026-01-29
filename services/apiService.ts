@@ -1,4 +1,4 @@
-import { AppData, Feedback } from '../types';
+import { AppData, Feedback, Category } from '../types';
 
 // Auto-detect API URL: use Vercel URL in production, or custom VITE_API_URL, or localhost
 const getApiUrl = () => {
@@ -78,6 +78,53 @@ export const appsApi = {
 
   delete: async (id: string): Promise<void> => {
     const response = await safeFetch(`${API_BASE_URL}/apps/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Network error' }));
+      throw new Error(error.error || `HTTP error! status: ${response.status}`);
+    }
+  },
+};
+
+// Categories API
+export const categoriesApi = {
+  getAll: async (): Promise<Category[]> => {
+    const response = await safeFetch(`${API_BASE_URL}/categories`);
+    return handleResponse<Category[]>(response);
+  },
+
+  create: async (data: { name: string; slug?: string; sortOrder?: number }): Promise<Category> => {
+    const response = await safeFetch(`${API_BASE_URL}/categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name,
+        slug: data.slug,
+        sort_order: data.sortOrder,
+      }),
+    });
+    return handleResponse<Category>(response);
+  },
+
+  update: async (
+    id: number,
+    data: { name?: string; slug?: string; sortOrder?: number }
+  ): Promise<Category> => {
+    const response = await safeFetch(`${API_BASE_URL}/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: data.name,
+        slug: data.slug,
+        sort_order: data.sortOrder,
+      }),
+    });
+    return handleResponse<Category>(response);
+  },
+
+  delete: async (id: number): Promise<void> => {
+    const response = await safeFetch(`${API_BASE_URL}/categories/${id}`, {
       method: 'DELETE',
     });
     if (!response.ok) {

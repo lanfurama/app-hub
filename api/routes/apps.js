@@ -3,6 +3,24 @@ import pool from '../config/database.js';
 
 const router = express.Router();
 
+// Map DB category (enum or varchar) to API slug
+function toApiCategory(raw) {
+  if (raw == null || raw === '') return 'digital-tools';
+  const s = String(raw).trim();
+  if (s === 'DIGITAL_TOOLS') return 'digital-tools';
+  if (s === 'OTHER') return 'other';
+  return s;
+}
+
+// Map API slug to DB value (support both varchar slug and legacy enum)
+function toDbCategory(slug) {
+  if (slug == null || slug === '') return null;
+  const s = String(slug).trim();
+  if (s === 'digital-tools') return 'digital-tools';
+  if (s === 'other') return 'other';
+  return s;
+}
+
 // GET /api/apps - Lấy tất cả apps
 router.get('/', async (req, res) => {
   try {
@@ -44,7 +62,7 @@ router.get('/', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'DIGITAL_TOOLS',
+      category: toApiCategory(row.category),
       icon: row.icon || null
     }));
 
@@ -79,7 +97,7 @@ router.get('/:id', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'DIGITAL_TOOLS',
+      category: toApiCategory(row.category),
       icon: row.icon || null
     };
 
@@ -122,7 +140,7 @@ router.post('/', async (req, res) => {
       [
         id, name, description, githubUrl || null, demoUrl || null, techStack, createdAt,
         imageUrlValue, imageUrlValue, aiInsights || null,
-        status || 'ACTIVE', version || '1.0.0', category || 'DIGITAL_TOOLS', icon || null
+        status || 'ACTIVE', version || '1.0.0', toDbCategory(category) || 'digital-tools', icon || null
       ]
     );
 
@@ -188,7 +206,7 @@ router.put('/:id', async (req, res) => {
            icon = COALESCE($12, icon)
        WHERE id = $13
        RETURNING *`,
-      [name, description, githubUrl, demoUrl, techStack, thumbnailValue, imageUrlValue, aiInsights, status, version, category, icon, id]
+      [name, description, githubUrl, demoUrl, techStack, thumbnailValue, imageUrlValue, aiInsights, status, version, toDbCategory(category), icon, id]
     );
 
     if (result.rows.length === 0) {
@@ -209,7 +227,7 @@ router.put('/:id', async (req, res) => {
       aiInsights: row.ai_insights,
       status: row.status || 'ACTIVE',
       version: row.version || '1.0.0',
-      category: row.category || 'DIGITAL_TOOLS',
+      category: toApiCategory(row.category),
       icon: row.icon || null
     };
 

@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import appsRouter from './api/routes/apps.js';
 import feedbackRouter from './api/routes/feedback.js';
+import categoriesRouter from './api/routes/categories.js';
 import aiInsightsRouter from './api/routes/aiInsights.js';
 import geminiRouter from './api/routes/gemini.js';
 
@@ -28,6 +29,7 @@ export function apiPlugin() {
       // API Routes với prefix /api/v1
       app.use('/api/v1/apps', appsRouter);
       app.use('/api/v1/feedback', feedbackRouter);
+      app.use('/api/v1/categories', categoriesRouter);
       app.use('/api/v1/ai-insights', aiInsightsRouter);
       app.use('/api/v1/gemini', geminiRouter);
 

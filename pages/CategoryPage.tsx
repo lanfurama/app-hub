@@ -6,18 +6,7 @@ import { Button, Card } from '../components/UI';
 import { NewAppModal } from '../components/NewAppModal';
 import { EditAppModal } from '../components/EditAppModal';
 import { Plus } from 'lucide-react';
-import { AppCategory } from '../types';
-
-// Map category from URL to AppCategory type
-const categoryMap: Record<string, AppCategory> = {
-  'digital-tools': 'DIGITAL_TOOLS',
-  'other': 'OTHER',
-};
-
-const categoryLabels: Record<AppCategory, string> = {
-  'DIGITAL_TOOLS': 'Digital Tools',
-  'OTHER': 'Khác',
-};
+import { useCategories } from '../hooks/useCategories';
 
 interface CategoryPageProps {
   searchQuery?: string;
@@ -26,26 +15,26 @@ interface CategoryPageProps {
 export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externalSearchQuery = '' }) => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const { apps, isLoaded, error } = useAppStore();
+  const { getLabel } = useCategories();
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
   const [editingAppId, setEditingAppId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
+
+  const slug = (categoryId || '').toLowerCase().trim();
 
   // Sync external search query
   useEffect(() => {
     setSearchQuery(externalSearchQuery);
   }, [externalSearchQuery]);
 
-  const category = categoryId ? categoryMap[categoryId.toLowerCase()] ?? 'OTHER' : 'OTHER';
-
-  // Filter apps by category and search
+  // Filter apps by category slug (API trả về slug: digital-tools, other, ...)
   const filteredApps = useMemo(() => {
     let filtered = apps.filter(app => {
-      const appCategory = app.category || 'OTHER';
-      const matchesCategory = category === 'DIGITAL_TOOLS'
-        ? appCategory === 'DIGITAL_TOOLS'
-        : appCategory !== 'DIGITAL_TOOLS'; // OTHER + legacy categories from DB
-      
-      const matchesSearch = searchQuery === '' || 
+      const appSlug = app.category || 'other';
+      const normalizedAppSlug = appSlug === 'DIGITAL_TOOLS' ? 'digital-tools' : appSlug === 'OTHER' ? 'other' : appSlug;
+      const matchesCategory = normalizedAppSlug === slug;
+
+      const matchesSearch = searchQuery === '' ||
         app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         app.techStack.some(tech => tech.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -53,9 +42,8 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
       return matchesCategory && matchesSearch;
     });
 
-    // Sort by created_at DESC
     return filtered.sort((a, b) => b.createdAt - a.createdAt);
-  }, [apps, category, searchQuery]);
+  }, [apps, slug, searchQuery]);
 
   const handleAppView = useCallback((appId: string) => {
     // Track app view if needed
@@ -95,13 +83,13 @@ export const CategoryPage: React.FC<CategoryPageProps> = ({ searchQuery: externa
       <div className="mb-4 sm:mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-            {categoryLabels[category]}
+            {getLabel(slug)}
             <span className="ml-2 text-base sm:text-lg font-normal text-gray-500">
               {filteredApps.length}
             </span>
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Danh sách ứng dụng thuộc danh mục {categoryLabels[category]}
+            Danh sách ứng dụng thuộc danh mục {getLabel(slug)}
           </p>
         </div>
         <Button variant="primary" icon={Plus} onClick={() => setIsNewAppModalOpen(true)} className="w-full sm:w-auto flex-shrink-0">

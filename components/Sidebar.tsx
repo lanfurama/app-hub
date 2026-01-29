@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  Grid3x3, Circle, Settings, LogOut, Box, X
+  Grid3x3, Circle, Settings, LogOut, Box, Folder, X
 } from 'lucide-react';
+import { useCategories } from '../hooks/useCategories';
 
 interface SidebarProps {
   open?: boolean;
@@ -12,6 +13,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { categories } = useCategories();
 
   const isActive = (path: string) => currentPath === path;
 
@@ -30,9 +32,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  const categories = [
+  const navCategories = [
     { id: 'all', label: 'Tất cả ứng dụng', icon: Grid3x3, path: '/' },
-    { id: 'digital-tools', label: 'Digital Tools', icon: Box, path: '/category/digital-tools' },
+    ...categories.map((cat, i) => ({
+      id: cat.slug,
+      label: cat.name,
+      icon: i === 0 ? Box : Folder,
+      path: `/category/${cat.slug}`,
+    })),
   ];
 
   const systemMenu = [
@@ -84,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ open = false, onClose }) => {
             DANH MỤC
           </h3>
           <nav className="space-y-1">
-            {categories.map((item) => {
+            {navCategories.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (

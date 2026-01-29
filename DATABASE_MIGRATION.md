@@ -1,5 +1,23 @@
 # Database Migration Guide - Furama Lab
 
+## Danh mục động (Categories)
+
+Để dùng chức năng **Thêm / Sửa / Xóa danh mục** trong Cài đặt:
+
+1. **Tạo bảng categories và dữ liệu mặc định**
+   ```bash
+   psql -U postgres -d app_hub -f create_categories_table.sql
+   ```
+
+2. **Chuyển apps.category từ enum sang VARCHAR (slug)**  
+   Nếu cột `apps.category` đang là enum (`app_category`), chạy thêm:
+   ```bash
+   psql -U postgres -d app_hub -f migrate_apps_category_to_slug.sql
+   ```
+   Sau bước này, `apps.category` lưu slug (vd: `digital-tools`, `other`). API trả về slug và chấp nhận slug khi tạo/cập nhật app.
+
+---
+
 ## Tổng quan
 
 Database hiện tại **CHƯA đủ** để hỗ trợ đầy đủ giao diện mới. Cần thêm các trường sau:

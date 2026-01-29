@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import appsRouter from './routes/apps.js';
 import feedbackRouter from './routes/feedback.js';
+import categoriesRouter from './routes/categories.js';
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get('/api/v1/health', (req, res) => {
 // API Routes với prefix /api/v1
 app.use('/api/v1/apps', appsRouter);
 app.use('/api/v1/feedback', feedbackRouter);
+app.use('/api/v1/categories', categoriesRouter);
 
 // 404 handler
 app.use((req, res) => {

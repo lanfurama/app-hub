@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../hooks/useAppStore';
+import { useCategories } from '../hooks/useCategories';
 import { Input, TextArea, Button, Modal } from './UI';
 import { useToast } from './Toast';
 import { Save } from 'lucide-react';
-import { AppStatus, AppCategory } from '../types';
+import { AppStatus } from '../types';
 
 interface EditAppModalProps {
   appId: string;
@@ -14,6 +15,7 @@ interface EditAppModalProps {
 
 export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClose, onSuccess }) => {
   const { getApp, updateApp } = useAppStore();
+  const { categories } = useCategories();
   const toast = useToast();
   const nameInputRef = useRef<HTMLInputElement>(null);
   
@@ -28,7 +30,7 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [status, setStatus] = useState<AppStatus>('ACTIVE');
   const [version, setVersion] = useState('');
-  const [category, setCategory] = useState<AppCategory>('OTHER');
+  const [category, setCategory] = useState<string>('other');
   const [icon, setIcon] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,8 +50,9 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
       setImagePreview(validImgUrl || null);
       setStatus(app.status || 'ACTIVE');
       setVersion(app.version || '1.0.0');
-      const c = app.category || 'OTHER';
-      setCategory((c === 'DIGITAL_TOOLS' || c === 'OTHER') ? c : 'OTHER');
+      const c = app.category || 'other';
+      const slug = c === 'DIGITAL_TOOLS' ? 'digital-tools' : c === 'OTHER' ? 'other' : c;
+      setCategory(categories.some((cat) => cat.slug === slug) ? slug : (categories[0]?.slug ?? 'other'));
       setIcon(app.icon || '');
     }
   }, [app, isOpen]);
@@ -292,11 +295,12 @@ export const EditAppModal: React.FC<EditAppModalProps> = ({ appId, isOpen, onClo
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as AppCategory)}
+              onChange={(e) => setCategory(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
             >
-              <option value="DIGITAL_TOOLS">Digital Tools</option>
-              <option value="OTHER">Khác</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.slug}>{c.name}</option>
+              ))}
             </select>
           </div>
           

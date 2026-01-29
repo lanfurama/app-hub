@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../hooks/useAppStore';
+import { useCategories } from '../hooks/useCategories';
 import { Input, TextArea, Button, Modal } from './UI';
 import { useToast } from './Toast';
 import { Save } from 'lucide-react';
-import { AppStatus, AppCategory } from '../types';
+import { AppStatus } from '../types';
 
 interface NewAppModalProps {
   isOpen: boolean;
@@ -13,9 +14,11 @@ interface NewAppModalProps {
 
 export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { addApp } = useAppStore();
+  const { categories } = useCategories();
   const toast = useToast();
   const nameInputRef = useRef<HTMLInputElement>(null);
-  
+  const defaultSlug = categories.length > 0 ? categories[0].slug : 'digital-tools';
+
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [githubUrl, setGithubUrl] = useState('');
@@ -25,7 +28,7 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [status, setStatus] = useState<AppStatus>('ACTIVE');
   const [version, setVersion] = useState('1.0.0');
-  const [category, setCategory] = useState<AppCategory>('DIGITAL_TOOLS');
+  const [category, setCategory] = useState<string>(defaultSlug);
   const [icon, setIcon] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -43,11 +46,11 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
       setImagePreview(null);
       setStatus('ACTIVE');
       setVersion('1.0.0');
-      setCategory('DIGITAL_TOOLS');
+      setCategory(defaultSlug);
       setIcon('');
       setErrors({});
     }
-  }, [isOpen]);
+  }, [isOpen, defaultSlug]);
 
   const isValidUrl = (url: string) => {
     try {
@@ -282,11 +285,12 @@ export const NewAppModal: React.FC<NewAppModalProps> = ({ isOpen, onClose, onSuc
             </label>
             <select
               value={category}
-              onChange={(e) => setCategory(e.target.value as AppCategory)}
+              onChange={(e) => setCategory(e.target.value)}
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-emerald-600 focus:border-emerald-600 sm:text-sm"
             >
-              <option value="DIGITAL_TOOLS">Digital Tools</option>
-              <option value="OTHER">Khác</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.slug}>{c.name}</option>
+              ))}
             </select>
           </div>
           

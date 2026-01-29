@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Badge, Card } from './UI';
 import { AppData } from '../types';
 import { Edit } from 'lucide-react';
+import { useCategories } from '../hooks/useCategories';
 
 const STAGGER_CLASSES = ['stagger-1', 'stagger-2', 'stagger-3', 'stagger-4', 'stagger-5', 'stagger-6', 'stagger-7', 'stagger-8', 'stagger-9', 'stagger-10', 'stagger-11', 'stagger-12'] as const;
 
@@ -17,7 +18,8 @@ interface AppCardProps {
 // Helper to get app icon from app data or fallback logic
 const getAppIcon = (app: AppData): string => {
   if (app.icon) return app.icon;
-  if (app.category === 'DIGITAL_TOOLS') return '🛠️';
+  const slug = app.category === 'DIGITAL_TOOLS' ? 'digital-tools' : app.category === 'OTHER' ? 'other' : (app.category || '');
+  if (slug === 'digital-tools') return '🛠️';
   return '💻';
 };
 
@@ -41,11 +43,6 @@ const getVersion = (app: AppData): string => {
   return app.version ? `Ver ${app.version}` : 'Ver 1.0.0';
 };
 
-// Get human-readable category label
-const getCategoryLabel = (app: AppData): string => {
-  const category = app.category || 'OTHER';
-  return category === 'DIGITAL_TOOLS' ? 'Digital Tools' : 'Khác';
-};
 
 // Image component with fallback
 const ImageWithFallback: React.FC<{
@@ -80,10 +77,12 @@ const ImageWithFallback: React.FC<{
 };
 
 export const AppCard: React.FC<AppCardProps> = ({ app, onView, onEdit, index = 0 }) => {
+  const { getLabel } = useCategories();
   const status = getStatusBadge(app);
   const version = getVersion(app);
   const icon = getAppIcon(app);
-  const categoryLabel = getCategoryLabel(app);
+  const categorySlug = app.category === 'DIGITAL_TOOLS' ? 'digital-tools' : app.category === 'OTHER' ? 'other' : (app.category || 'other');
+  const categoryLabel = getLabel(categorySlug);
   const staggerClass = STAGGER_CLASSES[index % STAGGER_CLASSES.length];
   
   // Get image URL (prefer imageUrl, fallback to thumbnailUrl)
